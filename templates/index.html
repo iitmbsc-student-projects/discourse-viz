@@ -5,16 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discourse Viz</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function showInstructors() {
+            document.getElementById('instructors-list').style.display = 'block';
+            document.getElementById('tas-list').style.display = 'none';
+        }
+
+        function showTAs() {
+            document.getElementById('instructors-list').style.display = 'none';
+            document.getElementById('tas-list').style.display = 'block';
+        }
+    </script>
 </head>
 <body>
     <h1>Discourse Visualization</h1>
-    <p>Subham bhai tussi great ho.</p>
-    <ul>
-        <li><a href="#">Karthik_POD</a></li>
-        <li><a href="#">Manoj Khara</a></li>
-        <li><a href="#">Nitin Jha</a></li>
-        <li><a href="#">Vishal Raj</a></li>
-        <li><a href="#">Nikita Kumari</a></li>
-    </ul>
+    <button onclick="showInstructors()">Instructors</button>
+    <button onclick="showTAs()">TAs</button>
+
+    <div id="instructors-list" style="display:none;">
+        <h2>Instructors</h2>
+        <ul>
+            <li><a href="#">Karthik POD</a></li>
+            <li><a href="#">Manoj Khara</a></li>
+            <li><a href="#">Nitin Jha</a></li>
+            <li><a href="#">Mayur Shimbre</a></li>
+            <li><a href="#">Anamika Ma'am</a></li>
+        </ul>
+    </div>
+
+    <div id="tas-list" style="display:none;">
+        <h2>TAs</h2>
+        <ul>
+            <li><a href="#">Puneet</a></li>
+            <li><a href="#">Shubham</a></li>
+        </ul>
+    </div>
 </body>
 </html>
