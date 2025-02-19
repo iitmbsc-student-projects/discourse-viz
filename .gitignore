@@ -1,1 +1,5 @@
 ./env/*
+*yaml
+*csv
+*xlsx
+*json
