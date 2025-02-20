@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{course_name}}</title>
+</head>
+
+<body>
+    <div id="visualizations">
+        <h2>Visualizations for {{ course_name }}</h2>
+        {% for image in images %}
+        <img src="{{ url_for('static', filename='visualizations/' ~ image) }}" alt="Error fetching visualisations">
+        {% endfor %}
+    </div>
+</body>
+
+</html>
