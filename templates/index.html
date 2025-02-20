@@ -5,45 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discourse Viz</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script>
-        function showInstructors() {
-            document.getElementById('instructors-list').style.display = 'block';
-            document.getElementById('tas-list').style.display = 'none';
+    <style>
+        .course-list {
+            margin: 20px 0;
         }
-
-        function showTAs() {
-            document.getElementById('instructors-list').style.display = 'none';
-            document.getElementById('tas-list').style.display = 'block';
+        .course-list h2 {
+            background-color: #f2f2f2;
+            padding: 10px;
+            border-radius: 5px;
         }
-    </script>
+        .course-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .course-list li {
+            background-color: #e6e6e6;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .course-list li a {
+            text-decoration: none;
+            color: #333;
+        }
+        .course-list li a:hover {
+            text-decoration: underline;
+        }
+        .course-sections {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .course-section {
+            flex: 1;
+            margin: 10px;
+            min-width: 200px;
+        }
+    </style>
 </head>
 <body>
     <h1>Discourse Visualization</h1>
-    <button onclick="showInstructors()">Instructors</button>
-    <button onclick="showTAs()">TAs</button>
 
-    <div id="instructors-list" style="display:none;">
-        <h2>Instructors</h2>
-        <ul>
-            <li><a href="#">Karthik POD</a></li>
-            <li><a href="#">Manoj Khara</a></li>
-            <li><a href="#">Nitin Jha</a></li>
-            <li><a href="#">Mayur Shimbre</a></li>
-            <li><a href="#">Anamika Ma'am</a></li>
-        </ul>
+    <div class="course-sections">
+        <div class="course-section" id="foundation-list">
+            <h2>Foundation Level</h2>
+            <ul>
+                {% for course in foundation_courses %}
+                <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="course-section" id="diploma-programming-list">
+            <h2>Diploma in Programming</h2>
+            <ul>
+                {% for course in diploma_programming_courses %}
+                <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="course-section" id="diploma-data-science-list">
+            <h2>Diploma in Data Science</h2>
+            <ul>
+                {% for course in diploma_data_science_courses %}
+                <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="course-section" id="degree-list">
+            <h2>Degree Level</h2>
+            <ul>
+                {% for course in degree_courses %}
+                <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
 
-    <div id="tas-list" style="display:none;">
-        <h2>TAs</h2>
-        <ul>
-            <li><a href="#">Puneet</a></li>
-            <li><a href="#">Shubham</a></li>
-        </ul>
-    </div>
     <div id="visualizations">
         <h2>Visualizations</h2>
         {% for image in images %}
-            <img src="{{ url_for('static', filename='visualizations/' ~ image) }}" alt="Visualization">
+            <img src="{{ url_for('static', filename='overall_engagement_charts/' ~ image) }}" alt="Visualization">
+            <br><br>
         {% endfor %}
     </div>
 </body>
