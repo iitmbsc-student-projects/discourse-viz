@@ -54,10 +54,6 @@ This project visualizes user engagement metrics for various courses. It is built
 - static: Directory containing static files like CSS and images.
 - requirements.txt: List of required Python packages.
 
-## Contact
-
-For any questions or inquiries, please contact Shubham Gattani (21f3002082@ds.study.iitm.ac.in).
-
 # High level overview of the data-processing
 
 - Query 102 is used to extract the information of all users "across all categories".
@@ -71,5 +67,12 @@ For any questions or inquiries, please contact Shubham Gattani (21f3002082@ds.st
 - So we finally have two types of scores for each user: the "unnormalized" score and the "log-normalized" score.
 
 # Visualizations used
-- For each course, we have identified **top-5 active users** based on the z-scores of the **log-normalized data**. This will be rendered on the course-specific page.
-- For the home page, we have identified **top-10 active users** based on the "unnormalized" z-scores of the overall discourse data.
+- For each course, we have identified **top-5 active users** based on the z-scores of the **log-normalized data**. This will be rendered on the course-specific page. The visualization used is a stacked bar chart showing the individual metrics of the active users in a single chart.
+- For the home page, we have identified **top-10 active users** based on the "unnormalized" z-scores of the overall discourse data. Here we have created seperate bar charts for each feature because the scale of the features vary significantly.
+
+
+
+
+## Contact
+
+For any questions or inquiries, please contact Shubham Gattani (21f3002082@ds.study.iitm.ac.in).
