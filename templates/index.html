@@ -46,12 +46,12 @@
 <body>
     <h1>Discourse Visualization</h1>
 
-    <div class="course-sections">
+    <div class="course-sections"> <!-- New div for course sections -->
         <div class="course-section" id="foundation-list">
             <h2>Foundation Level</h2>
             <ul>
                 {% for course in foundation_courses %}
-                <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+                <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li> <!-- Use the course name as the link text -->
                 {% endfor %}
             </ul>
         </div>
@@ -85,7 +85,7 @@
     </div>
 
     <div id="visualizations">
-        <h2>Visualizations</h2>
+        <h2>Visualizations</h2> <!-- This section contains visualizations for overall engagement of users on discourse -->
         {% for image in images %}
             <img src="{{ url_for('static', filename='overall_engagement_charts/' ~ image) }}" alt="Visualization">
             <br><br>

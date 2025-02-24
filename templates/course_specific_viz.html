@@ -11,7 +11,7 @@
     <div id="visualizations">
         <h2>Visualizations for {{ course_name }}</h2>
         {% for image in images %}
-        <img src="{{ url_for('static', filename='visualizations/' ~ image) }}" alt="Error fetching visualisations">
+        <img src="{{ url_for('static', filename='visualizations/' ~ image) }}" alt="Error fetching visualisation">
         {% endfor %}
     </div>
 </body>
