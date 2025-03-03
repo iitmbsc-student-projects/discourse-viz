@@ -1,21 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "login.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{course_name}}</title>
-</head>
-<body>
-    <div id="visualizations">
-        <h2>Visualizations for {{ course_name }}</h2>
-        {% for viz in visualizations %}
-            <div style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
-                <iframe src="{{ url_for('static', filename='visualizations/' ~ viz) }}" width="100%" height="500" style="border:none;"></iframe>
-            </div>
-        {% endfor %}
-    </div>
-</body>
+{% block title %}{{ course_name }}{% endblock %}
 
-
-</html>
+{% block content %}
+{% if 'user' in session %}
+<div id="visualizations">
+    <h2>Visualizations for {{ course_name }}</h2>
+    {% for viz in visualizations %}
+        <div style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
+            <iframe src="{{ url_for('static', filename='visualizations/' ~ viz) }}" width="100%" height="500" style="border:none;"></iframe>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

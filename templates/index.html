@@ -1,103 +1,145 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discourse Viz</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        .course-list {
-            margin: 20px 0;
-        }
-        .course-list h2 {
-            background-color: #f2f2f2;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .course-list ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        .course-list li {
-            background-color: #e6e6e6;
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .course-list li a {
-            text-decoration: none;
-            color: #333;
-        }
-        .course-list li a:hover {
-            text-decoration: underline;
-        }
-        .course-sections {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-        }
-        .course-section {
-            flex: 1;
-            margin: 10px;
-            min-width: 200px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Discourse Visualization</h1>
+{% extends "login.html" %}
 
-    <div class="course-sections"> <!-- New div for course sections -->
-        <div class="course-section" id="foundation-list">
-            <h2>Foundation Level</h2>
-            <ul>
-                {% for course in foundation_courses %}
-                <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li> <!-- Use the course name as the link text -->
-                {% endfor %}
-            </ul>
-        </div>
+{% block title %}Discourse Viz{% endblock %}
+{% block styles %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+        color: #333;
+    }
 
-        <div class="course-section" id="diploma-programming-list">
-            <h2>Diploma in Programming</h2>
-            <ul>
-                {% for course in diploma_programming_courses %}
-                <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
-                {% endfor %}
-            </ul>
-        </div>
+    h1 {
+        text-align: center;
+        margin-top: 20px;
+    }
 
-        <div class="course-section" id="diploma-data-science-list">
-            <h2>Diploma in Data Science</h2>
-            <ul>
-                {% for course in diploma_data_science_courses %}
-                <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
-                {% endfor %}
-            </ul>
-        </div>
+    .course-sections {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 20px;
+    }
 
-        <div class="course-section" id="degree-list">
-            <h2>Degree Level</h2>
-            <ul>
-                {% for course in degree_courses %}
-                <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
-                {% endfor %}
-            </ul>
-        </div>
+    .course-section {
+        background: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 15px;
+        width: 280px;
+        text-align: center;
+    }
+
+    .course-section h2 {
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 18px;
+    }
+
+    .course-section ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .course-section li {
+        background-color: #e9ecef;
+        margin: 5px 0;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background 0.3s;
+    }
+
+    .course-section li a {
+        text-decoration: none;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .course-section li:hover {
+        background-color: #d6d8db;
+    }
+
+    #visualizations {
+        text-align: center;
+        margin: 30px 10px;
+    }
+
+    #visualizations h2 {
+        color: #0056b3;
+        font-size: 22px;
+    }
+
+    iframe {
+        max-width: 100%;
+        border: none;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Discourse Visualization</h1>
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for message in messages %}
+            <li><h2 style="background-color: lightcoral;">{{ message }}</h2></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+{% if 'user' in session %}
+<div class="course-sections">
+    <div class="course-section" id="foundation-list">
+        <h2>Foundation Level</h2>
+        <ul>
+            {% for course in foundation_courses %}
+            <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            {% endfor %}
+        </ul>
     </div>
 
-    <!-- <div id="visualizations">
-        <h2>Visualizations</h2> 
-        {% for image in images %}
-            <img src="{{ url_for('static', filename='overall_engagement_charts/' ~ image) }}" alt="Visualization">
-            <br><br>
-        {% endfor %}
-    </div> -->
-    <div id="visualizations">
-        <h2>Visualizations for {{ course_name }}</h2>
-        {% for viz in visualizations %}
-            <div style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
-                <iframe src="{{ url_for('static', filename='visualizations/' ~ viz) }}" width="100%" height="500" style="border:#333;"></iframe>
-            </div>
-        {% endfor %}
+    <div class="course-section" id="diploma-programming-list">
+        <h2>Diploma in Programming</h2>
+        <ul>
+            {% for course in diploma_programming_courses %}
+            <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            {% endfor %}
+        </ul>
     </div>
-</body>
-</html>
+
+    <div class="course-section" id="diploma-data-science-list">
+        <h2>Diploma in Data Science</h2>
+        <ul>
+            {% for course in diploma_data_science_courses %}
+            <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="course-section" id="degree-list">
+        <h2>Degree Level</h2>
+        <ul>
+            {% for course in degree_courses %}
+            <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div id="visualizations">
+    <h2 style="font-size: xx-large;">Top-10 most engaged users</h2>
+    {% for viz in visualizations %}
+    <div style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
+        <iframe src="{{ url_for('static', filename='visualizations/' ~ viz) }}" width="100%" height="500"></iframe>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
