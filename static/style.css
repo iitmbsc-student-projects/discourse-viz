@@ -39,3 +39,19 @@ a {
 a:hover {
   text-decoration: underline;
 }
+.login-btn {
+  display: block;
+  text-align: center;
+  background-color: #4285F4; /* Google's blue */
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  text-decoration: none;
+  width: 180px;
+  margin: 20px auto;
+}
+
+.login-btn:hover {
+  background-color: #357ae8;
+}
+
