@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Discourse Viz{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block styles %}{% endblock %}
+</head>
+
+<body>
+
+    <!-- Common Header Section -->
+    <div class="header">
+        {% if 'user' in session %}
+        <p style="text-align: center; font-size: x-large;">Welcome, {{ session['user']['given_name'] }}</p>
+        <!-- <p style="text-align: center; font-size: x-large;">Welcome to Discourse Visualization</p> -->
+        <a href="{{ url_for('logout') }}"
+            style="position: absolute; top: 10px; left: 10px; padding: 10px 15px; background-color: #d9534f; color: white; text-decoration: none; border-radius: 5px;">
+            Logout
+        </a>
+
+        {% else %}
+        <a href="{{ url_for('login') }}" class="login-btn">Login with Google</a>
+        {% endif %}
+    </div>
+
+    <!-- Content of the Page -->
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+
+</html>

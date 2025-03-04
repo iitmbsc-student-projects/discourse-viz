@@ -68,8 +68,7 @@ This project visualizes user engagement metrics for various courses. It is built
 
 # Visualizations used
 - For each course, we have identified **top-5 active users** based on the z-scores of the **log-normalized data**. This will be rendered on the course-specific page. The visualization used is a stacked bar chart showing the individual metrics of the active users in a single chart.
-- For the home page, we have identified **top-10 active users** based on the "unnormalized" z-scores of the overall discourse data. Here we have created seperate bar charts for each feature because the scale of the features vary significantly.
-
+- For the home page, we have identified **top-10 active users** based on the "unnormalized" z-scores of the overall discourse data.
 
 
 
