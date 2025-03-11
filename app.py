@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, session, request, f
 from authlib.integrations.flask_client import OAuth
 import os, yaml, time
 
-with open(".\key.yaml", "r") as file:
+with open("./key.yaml", "r") as file:
     keys = yaml.safe_load(file)
 
 
@@ -79,4 +79,4 @@ def course_page(course_name):
     return render_template('course_specific_viz.html', course_name=course_name, visualizations=[f"most_active_users_{course_name}.html"])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
