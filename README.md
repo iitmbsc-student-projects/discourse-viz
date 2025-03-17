@@ -54,6 +54,37 @@ This project visualizes user engagement metrics for various courses. It is built
 - static: Directory containing static files like CSS and images.
 - requirements.txt: List of required Python packages.
 
+## How to Fork This Repository
+
+Follow these steps to fork and set up this repository on your local machine:
+
+1. **Fork the Repository**  
+   - Click the **Fork** button in the top-right corner of this repo (on GitHub webUI). This creates a copy under your GitHub account.
+
+2. **Clone Your Fork**  
+   Open a terminal and run:  
+   ```sh
+   git clone https://github.com/YOUR-USERNAME/DISCOURSE_ANALYSIS_ICSR.git
+   cd DISCOURSE_ANALYSIS_ICSR
+   ```
+
+4. **Make Your Changes**  
+   - Create a new branch:  
+     ```sh
+     git checkout -b feature-branch
+     ```
+   - Make your edits, then commit:  
+     ```sh
+     git add .
+     git commit -m "Your meaningful commit message"
+     ```
+
+5. **Push and Open a Pull Request**  
+   ```sh
+   git push origin feature-branch
+   ```
+   - Go to your fork on GitHub and click **"Contribute"** and then click on **"Open Pull Request"** to propose your changes.
+
 # High level overview of the data-processing
 
 - Query 102 is used to extract the information of all users "across all categories".
@@ -72,6 +103,6 @@ This project visualizes user engagement metrics for various courses. It is built
 
 
 
-## Contact
+# Contact
 
 For any questions or inquiries, please contact Shubham Gattani (21f3002082@ds.study.iitm.ac.in).
