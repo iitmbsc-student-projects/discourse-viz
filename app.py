@@ -1,19 +1,22 @@
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from authlib.integrations.flask_client import OAuth
-import os, yaml, time
+import os
 
-with open("./key.yaml", "r") as file:
-    keys = yaml.safe_load(file)
+# with open("./key.yaml", "r") as file:
+#     keys = yaml.safe_load(file)
 
 
 app = Flask(__name__)
-app.secret_key = keys["secret_key"]  # Replace with your secret key
+# app.secret_key = keys["secret_key"]  # Replace with your secret key
+app.secret_key = os.environ.get("SECRET_KEY")  # Replace with your secret key
 oauth = OAuth(app)
 
 google = oauth.register(
     name='google',
-    client_id= keys["google_auth_client_id"],
-    client_secret= keys["google_auth_client_secret"],
+    # client_id= keys["google_auth_client_id"],
+    # client_secret= keys["google_auth_client_secret"],
+    client_id= os.environ.get("GOOGLE_AUTH_CLIENT_ID"),
+    client_secret= os.environ.get("GOOGLE_AUTH_CLIENT_SECRET"),
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
 )
