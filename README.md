@@ -17,7 +17,7 @@ This project visualizes user engagement metrics for various courses. It is built
 1. Clone the repository:
 
     ```sh
-    git clone https://github.com/yourusername/discourse-viz.git
+    git clone https://github.com/iitmbsc-student-projects/discourse-viz.git
     cd discourse-viz
     ```
 
