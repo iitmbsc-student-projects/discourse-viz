@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    #vis.vega-embed {
+      width: 100%;
+      display: flex;
+    }
+
+    #vis.vega-embed details,
+    #vis.vega-embed details summary {
+      position: relative;
+    }
+  </style>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+  <div id="vis"></div>
+  <script>
+    (function(vegaEmbed) {
+      var spec = {"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}, "legend": {"orient": "right"}}, "data": {"name": "data-5e15321c01fd5913a62c05c523e9fc28"}, "mark": {"type": "bar"}, "encoding": {"color": {"field": "Activity Type", "title": "Activity Type", "type": "nominal"}, "tooltip": [{"field": "acting_username", "type": "nominal"}, {"field": "Activity Type", "type": "nominal"}, {"field": "Count", "type": "quantitative"}], "x": {"axis": {"titleFontSize": 14}, "field": "Count", "title": "Total User Interactions", "type": "quantitative"}, "y": {"axis": {"titleFontSize": 14}, "field": "acting_username", "sort": "-x", "title": "Users", "type": "nominal"}}, "height": 400, "title": "Most Active Users (managerial_economics)", "width": 600, "$schema": "https://vega.github.io/schema/vega-lite/v5.20.1.json", "datasets": {"data-5e15321c01fd5913a62c05c523e9fc28": [{"acting_username": "21f2000143", "Activity Type": "created_new_topic", "Count": 4}, {"acting_username": "22f1001470", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "MUSKAN_JINDAL", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "Preetam", "Activity Type": "created_new_topic", "Count": 1}, {"acting_username": "Puneet_21f3002005", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "ShubhamG", "Activity Type": "created_new_topic", "Count": 2}, {"acting_username": "abhineetraman", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "bharath.valaboju", "Activity Type": "created_new_topic", "Count": 1}, {"acting_username": "ee23b034", "Activity Type": "created_new_topic", "Count": 2}, {"acting_username": "lalitmach22", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "21f2000143", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "22f1001470", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "MUSKAN_JINDAL", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "Preetam", "Activity Type": "likes_given", "Count": 13}, {"acting_username": "Puneet_21f3002005", "Activity Type": "likes_given", "Count": 0}, {"acting_username": "ShubhamG", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "abhineetraman", "Activity Type": "likes_given", "Count": 3}, {"acting_username": "bharath.valaboju", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "ee23b034", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "lalitmach22", "Activity Type": "likes_given", "Count": 0}, {"acting_username": "21f2000143", "Activity Type": "likes_received", "Count": 1}, {"acting_username": "22f1001470", "Activity Type": "likes_received", "Count": 1}, {"acting_username": "MUSKAN_JINDAL", "Activity Type": "likes_received", "Count": 3}, {"acting_username": "Preetam", "Activity Type": "likes_received", "Count": 6}, {"acting_username": "Puneet_21f3002005", "Activity Type": "likes_received", "Count": 3}, {"acting_username": "ShubhamG", "Activity Type": "likes_received", "Count": 3}, {"acting_username": "abhineetraman", "Activity Type": "likes_received", "Count": 2}, {"acting_username": "bharath.valaboju", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "ee23b034", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "lalitmach22", "Activity Type": "likes_received", "Count": 2}, {"acting_username": "21f2000143", "Activity Type": "replied", "Count": 1}, {"acting_username": "22f1001470", "Activity Type": "replied", "Count": 2}, {"acting_username": "MUSKAN_JINDAL", "Activity Type": "replied", "Count": 2}, {"acting_username": "Preetam", "Activity Type": "replied", "Count": 2}, {"acting_username": "Puneet_21f3002005", "Activity Type": "replied", "Count": 0}, {"acting_username": "ShubhamG", "Activity Type": "replied", "Count": 1}, {"acting_username": "abhineetraman", "Activity Type": "replied", "Count": 1}, {"acting_username": "bharath.valaboju", "Activity Type": "replied", "Count": 0}, {"acting_username": "ee23b034", "Activity Type": "replied", "Count": 0}, {"acting_username": "lalitmach22", "Activity Type": "replied", "Count": 0}, {"acting_username": "21f2000143", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "22f1001470", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "MUSKAN_JINDAL", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "Preetam", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "Puneet_21f3002005", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "ShubhamG", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "abhineetraman", "Activity Type": "solved_a_topic", "Count": 1}, {"acting_username": "bharath.valaboju", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "ee23b034", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "lalitmach22", "Activity Type": "solved_a_topic", "Count": 0}]}};
+      var embedOpt = {"mode": "vega-lite"};
+
+      function showError(el, error){
+          el.innerHTML = ('<div style="color:red;">'
+                          + '<p>JavaScript Error: ' + error.message + '</p>'
+                          + "<p>This usually means there's a typo in your chart specification. "
+                          + "See the javascript console for the full traceback.</p>"
+                          + '</div>');
+          throw error;
+      }
+      const el = document.getElementById('vis');
+      vegaEmbed("#vis", spec, embedOpt)
+        .catch(error => showError(el, error));
+    })(vegaEmbed);
+
+  </script>
+</body>
+</html>

@@ -5,37 +5,69 @@ import os
 # with open("./key.yaml", "r") as file:
 #     keys = yaml.safe_load(file)
 
-
+# GLOBAL VARIABLES
 app = Flask(__name__)
-# app.secret_key = keys["secret_key"]  # Replace with your secret key
 app.secret_key = os.environ.get("SECRET_KEY")  # Replace with your secret key
 oauth = OAuth(app)
 
 google = oauth.register(
     name='google',
-    # client_id= keys["google_auth_client_id"],
-    # client_secret= keys["google_auth_client_secret"],
     client_id= os.environ.get("GOOGLE_AUTH_CLIENT_ID"),
     client_secret= os.environ.get("GOOGLE_AUTH_CLIENT_SECRET"),
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
 )
 
+foundation_courses = ['Mathematics for Data Science I','Statistics for Data Science I','Computational Thinking','English I','English II','Mathematics for Data Science II','Statistics for Data Science II','Programming in Python']
+diploma_programming_courses = ['Programming, Data Structures and Algorithms','Database Management Systems','Modern Application Development I','System Commands','Modern Application Development II','Programming Concepts using Java']
+diploma_data_science_courses = ['Machine Learning Foundations','Business Data Management','Machine Learning Techniques','Machine Learning Practice','Tools in Data Science','Business Analytics']
+degree_courses = ['Deep Learning','AI: Search Methods for Problem Solving','Software Testing','Software Engineering','Strategies for Professional Growth','Industry 4.0','Design Thinking for Data Driven App Development','Speech Technology','Privacy & Security in Online Social Media','Algorithmic Thinking in Bioinformatics','Data Visualization Design','Linear Statistical Models','Market Research','Introduction to Big Data','Financial Forensics','Big Data and Biological Networks','Advanced Algorithms','Special topics in ML (Reinforcement Learning)','Statistical Computing','Programming in C','Mathematical Thinking','Computer System Design','Operating Systems','Deep Learning for Computer Vision','Large Language Models','Managerial Economics','Game Theory and Strategy','Corporate Finance','Deep Learning Practice','Introduction to Natural Language Processing']
+
+degree_courses.sort()
+diploma_data_science_courses.sort()
+diploma_programming_courses.sort()
+foundation_courses.sort()
+
+def find_latest_chart(dir_list):
+    term_list = [k.split("_")[3] for k in dir_list]
+    year_list = [k.split("_")[-1].split(".")[0] for k in dir_list]
+    term_list.sort(), year_list.sort()
+    latest_chart = f"most_active_users_{term_list[0]}_{year_list[-1]}.html"
+    return latest_chart
+
 @app.route('/')
 def index():
-    visualizations = ["most_active_users_all_users.html"]  # Kept as a list because there could be multiple visualizations for all_users data
+    # Fetch the list of overall discourse charts
+    overall_discourse_charts_path = os.path.join(app.static_folder, 'visualizations', 'overall_discourse_charts')
+    overall_discourse_charts = os.listdir(overall_discourse_charts_path)
+    latest_chart = find_latest_chart(overall_discourse_charts)
+    print("LATEST_CHART = ", latest_chart)
 
-    foundation_courses = ["Programming in Python", "English II", "Course 3"]
-    diploma_programming_courses = ["Database Management Systems", "Modern Application Development I", "Course 6"]
-    diploma_data_science_courses = ["Machine Learning Foundations", "Course 8", "Course 9"]
-    degree_courses = ["Course 10", "Course 11", "Course 12"]
+    # Get the selected chart from the query parameters
+    selected_chart = request.args.get('chart')
 
     return render_template('index.html', 
-                           visualizations=visualizations, 
                            foundation_courses=foundation_courses,
                            diploma_programming_courses=diploma_programming_courses,
                            diploma_data_science_courses=diploma_data_science_courses,
-                           degree_courses=degree_courses)
+                           degree_courses=degree_courses,
+                           overall_discourse_charts=overall_discourse_charts,
+                           selected_chart=selected_chart,
+                           latest_chart=latest_chart)
+
+@app.route('/get_chart')
+def get_chart():
+    chart = request.args.get('chart')
+    if chart:
+        chart_path = os.path.join(app.static_folder, 'visualizations', 'overall_discourse_charts', chart)
+        print(f"Requested chart path: {chart_path}")  # Debugging line
+        chart_html = f"""
+        <h2>Selected Chart: {chart.split('.')[0].replace('_', ' ')}</h2>
+        <iframe src="{url_for('static', filename='visualizations/overall_discourse_charts/' + chart)}" 
+                width="100%" height="600" style="border: none; border-radius: 8px;"></iframe>
+        """
+        return chart_html
+    return "<h2>No chart selected</h2>"
 
 @app.route('/login')
 def login():
@@ -74,12 +106,17 @@ def authorized():
 
 @app.route("/<course_name>")
 def course_page(course_name):
-    course_name = course_name.replace("-", "_")
+    course_name_original = course_name
+    print(f"Recieved course name = {course_name}")
+    course_name = course_name.replace("-", "_").replace(":","_")
+    print(f"NEW course name = {course_name}")
 
     # Get path to Altair-generated HTML visualizations
-    visualizations_html_path = os.path.join(app.static_folder, 'visualizations', f"most_active_users_{course_name}.html")
+    latest_visualizations_html_path = url_for('static', filename=f'visualizations/course_specific_charts/t1_2025/{course_name}.html')
 
-    return render_template('course_specific_viz.html', course_name=course_name, visualizations=[f"most_active_users_{course_name}.html"])
+    print(f"latest_visualizations_html_path === {latest_visualizations_html_path}")
+
+    return render_template('course_specific_viz.html', course_name=course_name_original.title().replace("_"," "), latest_visualizations_html_path = latest_visualizations_html_path)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

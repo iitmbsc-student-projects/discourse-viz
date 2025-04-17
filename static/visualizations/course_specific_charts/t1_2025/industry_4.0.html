@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    #vis.vega-embed {
+      width: 100%;
+      display: flex;
+    }
+
+    #vis.vega-embed details,
+    #vis.vega-embed details summary {
+      position: relative;
+    }
+  </style>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+  <div id="vis"></div>
+  <script>
+    (function(vegaEmbed) {
+      var spec = {"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}, "legend": {"orient": "right"}}, "data": {"name": "data-78fc6dc82a8d39d8f079081646c4ba7e"}, "mark": {"type": "bar"}, "encoding": {"color": {"field": "Activity Type", "title": "Activity Type", "type": "nominal"}, "tooltip": [{"field": "acting_username", "type": "nominal"}, {"field": "Activity Type", "type": "nominal"}, {"field": "Count", "type": "quantitative"}], "x": {"axis": {"titleFontSize": 14}, "field": "Count", "title": "Total User Interactions", "type": "quantitative"}, "y": {"axis": {"titleFontSize": 14}, "field": "acting_username", "sort": "-x", "title": "Users", "type": "nominal"}}, "height": 400, "title": "Most Active Users (industry_4.0)", "width": 600, "$schema": "https://vega.github.io/schema/vega-lite/v5.20.1.json", "datasets": {"data-78fc6dc82a8d39d8f079081646c4ba7e": [{"acting_username": "21f2000511", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "21f2000865", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "21f3000728", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "21f3002971", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "22f1001109", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "Bala5885", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "Govind", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "GurneetKB", "Activity Type": "created_new_topic", "Count": 1}, {"acting_username": "jaimini.POD", "Activity Type": "created_new_topic", "Count": 6}, {"acting_username": "sayan", "Activity Type": "created_new_topic", "Count": 1}, {"acting_username": "21f2000511", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "21f2000865", "Activity Type": "likes_given", "Count": 2}, {"acting_username": "21f3000728", "Activity Type": "likes_given", "Count": 2}, {"acting_username": "21f3002971", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "22f1001109", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "Bala5885", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "Govind", "Activity Type": "likes_given", "Count": 0}, {"acting_username": "GurneetKB", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "jaimini.POD", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "sayan", "Activity Type": "likes_given", "Count": 3}, {"acting_username": "21f2000511", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "21f2000865", "Activity Type": "likes_received", "Count": 1}, {"acting_username": "21f3000728", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "21f3002971", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "22f1001109", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "Bala5885", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "Govind", "Activity Type": "likes_received", "Count": 1}, {"acting_username": "GurneetKB", "Activity Type": "likes_received", "Count": 7}, {"acting_username": "jaimini.POD", "Activity Type": "likes_received", "Count": 10}, {"acting_username": "sayan", "Activity Type": "likes_received", "Count": 1}, {"acting_username": "21f2000511", "Activity Type": "replied", "Count": 0}, {"acting_username": "21f2000865", "Activity Type": "replied", "Count": 1}, {"acting_username": "21f3000728", "Activity Type": "replied", "Count": 2}, {"acting_username": "21f3002971", "Activity Type": "replied", "Count": 1}, {"acting_username": "22f1001109", "Activity Type": "replied", "Count": 0}, {"acting_username": "Bala5885", "Activity Type": "replied", "Count": 0}, {"acting_username": "Govind", "Activity Type": "replied", "Count": 0}, {"acting_username": "GurneetKB", "Activity Type": "replied", "Count": 1}, {"acting_username": "jaimini.POD", "Activity Type": "replied", "Count": 5}, {"acting_username": "sayan", "Activity Type": "replied", "Count": 2}, {"acting_username": "21f2000511", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "21f2000865", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "21f3000728", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "21f3002971", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "22f1001109", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "Bala5885", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "Govind", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "GurneetKB", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "jaimini.POD", "Activity Type": "solved_a_topic", "Count": 1}, {"acting_username": "sayan", "Activity Type": "solved_a_topic", "Count": 0}]}};
+      var embedOpt = {"mode": "vega-lite"};
+
+      function showError(el, error){
+          el.innerHTML = ('<div style="color:red;">'
+                          + '<p>JavaScript Error: ' + error.message + '</p>'
+                          + "<p>This usually means there's a typo in your chart specification. "
+                          + "See the javascript console for the full traceback.</p>"
+                          + '</div>');
+          throw error;
+      }
+      const el = document.getElementById('vis');
+      vegaEmbed("#vis", spec, embedOpt)
+        .catch(error => showError(el, error));
+    })(vegaEmbed);
+
+  </script>
+</body>
+</html>

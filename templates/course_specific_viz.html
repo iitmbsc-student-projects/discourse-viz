@@ -5,12 +5,11 @@
 {% block content %}
 {% if 'user' in session %}
 <div id="visualizations">
-    <h2>Visualizations for {{ course_name }}</h2>
-    {% for viz in visualizations %}
-        <div style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
-            <iframe src="{{ url_for('static', filename='visualizations/' ~ viz) }}" width="100%" height="500" style="border:none;"></iframe>
-        </div>
-    {% endfor %}
+    <h2>Top-10 users for {{ course_name }}</h2>
+    <div style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
+        <iframe src="{{ latest_visualizations_html_path }}" width="100%" height="500" style="border:none;"></iframe>
+    </div>
+
 </div>
 {% endif %}
 {% endblock %}

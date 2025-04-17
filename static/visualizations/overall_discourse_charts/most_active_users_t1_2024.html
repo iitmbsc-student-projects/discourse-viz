@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    #vis.vega-embed {
+      width: 100%;
+      display: flex;
+    }
+
+    #vis.vega-embed details,
+    #vis.vega-embed details summary {
+      position: relative;
+    }
+  </style>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+  <div id="vis"></div>
+  <script>
+    (function(vegaEmbed) {
+      var spec = {"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "data": {"name": "data-fe091edcc8816609f9f7dfd128b6fcbc"}, "mark": {"type": "bar"}, "encoding": {"color": {"field": "metric", "title": "Activity Type", "type": "nominal"}, "tooltip": [{"field": "username", "type": "nominal"}, {"field": "metric", "type": "nominal"}, {"field": "count", "type": "quantitative"}], "x": {"axis": {"format": "~s", "titleFontSize": 14}, "field": "count", "title": "Total User Interactions", "type": "quantitative"}, "y": {"axis": {"titleFontSize": 14}, "field": "username", "sort": "-x", "title": "Users", "type": "nominal"}}, "height": 400, "title": "Most Active Users for (t1_2024)", "width": 600, "$schema": "https://vega.github.io/schema/vega-lite/v5.20.1.json", "datasets": {"data-fe091edcc8816609f9f7dfd128b6fcbc": [{"user_id": 348, "username": "sayan", "metric": "likes_received", "count": 661}, {"user_id": 933, "username": "Anand", "metric": "likes_received", "count": 613}, {"user_id": 11, "username": "Karthik_POD", "metric": "likes_received", "count": 584}, {"user_id": 15826, "username": "iitmanupam", "metric": "likes_received", "count": 526}, {"user_id": 17066, "username": "23f1000966", "metric": "likes_received", "count": 97}, {"user_id": 23071, "username": "Adwitiya_Chauhan", "metric": "likes_received", "count": 27}, {"user_id": 3024, "username": "papadelta_5636", "metric": "likes_received", "count": 160}, {"user_id": 12082, "username": "PremKumarGupta", "metric": "likes_received", "count": 228}, {"user_id": 25214, "username": "23f3003566", "metric": "likes_received", "count": 22}, {"user_id": 6616, "username": "aaruni-kale", "metric": "likes_received", "count": 125}, {"user_id": 348, "username": "sayan", "metric": "likes_given", "count": 266}, {"user_id": 933, "username": "Anand", "metric": "likes_given", "count": 326}, {"user_id": 11, "username": "Karthik_POD", "metric": "likes_given", "count": 148}, {"user_id": 15826, "username": "iitmanupam", "metric": "likes_given", "count": 200}, {"user_id": 17066, "username": "23f1000966", "metric": "likes_given", "count": 79}, {"user_id": 23071, "username": "Adwitiya_Chauhan", "metric": "likes_given", "count": 85}, {"user_id": 3024, "username": "papadelta_5636", "metric": "likes_given", "count": 240}, {"user_id": 12082, "username": "PremKumarGupta", "metric": "likes_given", "count": 57}, {"user_id": 25214, "username": "23f3003566", "metric": "likes_given", "count": 12}, {"user_id": 6616, "username": "aaruni-kale", "metric": "likes_given", "count": 322}, {"user_id": 348, "username": "sayan", "metric": "days_visited", "count": 115}, {"user_id": 933, "username": "Anand", "metric": "days_visited", "count": 121}, {"user_id": 11, "username": "Karthik_POD", "metric": "days_visited", "count": 121}, {"user_id": 15826, "username": "iitmanupam", "metric": "days_visited", "count": 121}, {"user_id": 17066, "username": "23f1000966", "metric": "days_visited", "count": 115}, {"user_id": 23071, "username": "Adwitiya_Chauhan", "metric": "days_visited", "count": 120}, {"user_id": 3024, "username": "papadelta_5636", "metric": "days_visited", "count": 120}, {"user_id": 12082, "username": "PremKumarGupta", "metric": "days_visited", "count": 119}, {"user_id": 25214, "username": "23f3003566", "metric": "days_visited", "count": 79}, {"user_id": 6616, "username": "aaruni-kale", "metric": "days_visited", "count": 119}, {"user_id": 348, "username": "sayan", "metric": "solutions", "count": 120}, {"user_id": 933, "username": "Anand", "metric": "solutions", "count": 18}, {"user_id": 11, "username": "Karthik_POD", "metric": "solutions", "count": 11}, {"user_id": 15826, "username": "iitmanupam", "metric": "solutions", "count": 4}, {"user_id": 17066, "username": "23f1000966", "metric": "solutions", "count": 38}, {"user_id": 23071, "username": "Adwitiya_Chauhan", "metric": "solutions", "count": 42}, {"user_id": 3024, "username": "papadelta_5636", "metric": "solutions", "count": 23}, {"user_id": 12082, "username": "PremKumarGupta", "metric": "solutions", "count": 3}, {"user_id": 25214, "username": "23f3003566", "metric": "solutions", "count": 39}, {"user_id": 6616, "username": "aaruni-kale", "metric": "solutions", "count": 12}, {"user_id": 348, "username": "sayan", "metric": "topics_created", "count": 27}, {"user_id": 933, "username": "Anand", "metric": "topics_created", "count": 58}, {"user_id": 11, "username": "Karthik_POD", "metric": "topics_created", "count": 16}, {"user_id": 15826, "username": "iitmanupam", "metric": "topics_created", "count": 15}, {"user_id": 17066, "username": "23f1000966", "metric": "topics_created", "count": 44}, {"user_id": 23071, "username": "Adwitiya_Chauhan", "metric": "topics_created", "count": 51}, {"user_id": 3024, "username": "papadelta_5636", "metric": "topics_created", "count": 19}, {"user_id": 12082, "username": "PremKumarGupta", "metric": "topics_created", "count": 6}, {"user_id": 25214, "username": "23f3003566", "metric": "topics_created", "count": 71}, {"user_id": 6616, "username": "aaruni-kale", "metric": "topics_created", "count": 23}, {"user_id": 348, "username": "sayan", "metric": "posts_created", "count": 893}, {"user_id": 933, "username": "Anand", "metric": "posts_created", "count": 571}, {"user_id": 11, "username": "Karthik_POD", "metric": "posts_created", "count": 424}, {"user_id": 15826, "username": "iitmanupam", "metric": "posts_created", "count": 418}, {"user_id": 17066, "username": "23f1000966", "metric": "posts_created", "count": 305}, {"user_id": 23071, "username": "Adwitiya_Chauhan", "metric": "posts_created", "count": 120}, {"user_id": 3024, "username": "papadelta_5636", "metric": "posts_created", "count": 151}, {"user_id": 12082, "username": "PremKumarGupta", "metric": "posts_created", "count": 401}, {"user_id": 25214, "username": "23f3003566", "metric": "posts_created", "count": 115}, {"user_id": 6616, "username": "aaruni-kale", "metric": "posts_created", "count": 164}]}};
+      var embedOpt = {"mode": "vega-lite"};
+
+      function showError(el, error){
+          el.innerHTML = ('<div style="color:red;">'
+                          + '<p>JavaScript Error: ' + error.message + '</p>'
+                          + "<p>This usually means there's a typo in your chart specification. "
+                          + "See the javascript console for the full traceback.</p>"
+                          + '</div>');
+          throw error;
+      }
+      const el = document.getElementById('vis');
+      vegaEmbed("#vis", spec, embedOpt)
+        .catch(error => showError(el, error));
+    })(vegaEmbed);
+
+  </script>
+</body>
+</html>

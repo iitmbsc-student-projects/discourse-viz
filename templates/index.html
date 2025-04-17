@@ -85,13 +85,15 @@
 {% block content %}
 <h1>Discourse Visualization</h1>
 {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class="flashes">
-            {% for message in messages %}
-            <li><h2 style="background-color: lightcoral;">{{ message }}</h2></li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+{% if messages %}
+<ul class="flashes">
+    {% for message in messages %}
+    <li>
+        <h2 style="background-color: lightcoral;">{{ message }}</h2>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
 {% endwith %}
 
 {% if 'user' in session %}
@@ -101,6 +103,7 @@
         <ul>
             {% for course in foundation_courses %}
             <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            <!-- <li><a href="/{{ course | replace(' ', '-') }}" target="_blank">{{ course }}</a></li> -->
             {% endfor %}
         </ul>
     </div>
@@ -110,6 +113,7 @@
         <ul>
             {% for course in diploma_programming_courses %}
             <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            <!-- <li><a href="/{{ course | replace(' ', '-') }}" target="_blank">{{ course }}</a></li> -->
             {% endfor %}
         </ul>
     </div>
@@ -118,7 +122,8 @@
         <h2>Diploma in Data Science</h2>
         <ul>
             {% for course in diploma_data_science_courses %}
-            <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            <li><a href="/{{ course | lower | replace(' ', '-')}}" target="_blank">{{ course }}</a></li>
+            <!-- <li><a href="/{{ course | replace(' ', '-') }}" target="_blank">{{ course }}</a></li> -->
             {% endfor %}
         </ul>
     </div>
@@ -128,18 +133,52 @@
         <ul>
             {% for course in degree_courses %}
             <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            <!-- <li><a href="/{{ course | replace(' ', '-') }}" target="_blank">{{ course }}</a></li> -->
             {% endfor %}
         </ul>
     </div>
 </div>
 
-<div id="visualizations">
-    <h2 style="font-size: xx-large;">Top-10 most engaged users</h2>
-    {% for viz in visualizations %}
-    <div style="overflow-x: auto; white-space: nowrap; max-width: 100%;">
-        <iframe src="{{ url_for('static', filename='visualizations/' ~ viz) }}" width="100%" height="500"></iframe>
-    </div>
-    {% endfor %}
+<div id="overall-discourse-dropdown">
+    <h2>Overall Discourse Charts</h2>
+    <form id="chart-form">
+        <label for="chart-select">Select a chart:</label>
+        <select id="chart-select" name="chart">
+            <option value="">Select a chart</option>
+            {% for chart in overall_discourse_charts %}
+            <option value="{{ chart }}" 
+                {% if selected_chart == chart or (not selected_chart and chart == latest_chart) %}selected{% endif %}>
+                {{ chart.split('.')[0].replace('_', ' ') }}
+            </option>
+            {% endfor %}
+        </select>
+    </form>
 </div>
+
+<div id="selected-chart" style="display: flex; justify-content: center; align-items: center; flex-direction: column; margin-top: 20px; min-height: 800px;">
+    {% if selected_chart or latest_chart %}
+    <h2 style="text-align: center; margin-bottom: 20px;">Selected Chart: {{ (selected_chart or latest_chart).split('.')[0].replace('_', ' ') }}</h2>
+    <iframe src="{{ url_for('static', filename='visualizations/overall_discourse_charts/' ~ (selected_chart or latest_chart)) }}"
+        width="90%" height="800" style="border: none; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);"></iframe>
+    {% endif %}
+</div>
+
+<script>
+    document.getElementById('chart-select').addEventListener('change', function () {
+        const chart = this.value;
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/get_chart?chart=${chart}`, true);
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                document.getElementById('selected-chart').innerHTML = xhr.responseText;
+                // Ensure the new content is centered
+                document.getElementById('selected-chart').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        };
+        xhr.send();
+    });
+</script>
+
+
 {% endif %}
 {% endblock %}

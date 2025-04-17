@@ -53,6 +53,9 @@ This project visualizes user engagement metrics for various courses. It is built
 - templates: Directory containing HTML templates.
 - static: Directory containing static files like CSS and images.
 - requirements.txt: List of required Python packages.
+- data folder: 
+    1. course_specific_data: Containes csv files having course specific data for a certaain term, e.g. "MLP data for t2_2024"
+    2. overall_data_all_users: Contains data for all users for their overall activity on discourse throught a certain term
 
 ## How to Fork This Repository
 

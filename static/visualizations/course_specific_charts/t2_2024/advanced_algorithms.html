@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    #vis.vega-embed {
+      width: 100%;
+      display: flex;
+    }
+
+    #vis.vega-embed details,
+    #vis.vega-embed details summary {
+      position: relative;
+    }
+  </style>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+  <div id="vis"></div>
+  <script>
+    (function(vegaEmbed) {
+      var spec = {"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}, "legend": {"orient": "right"}}, "data": {"name": "data-6c45f8f040431f873997a1579c43d6c0"}, "mark": {"type": "bar"}, "encoding": {"color": {"field": "Activity Type", "title": "Activity Type", "type": "nominal"}, "tooltip": [{"field": "acting_username", "type": "nominal"}, {"field": "Activity Type", "type": "nominal"}, {"field": "Count", "type": "quantitative"}], "x": {"axis": {"titleFontSize": 14}, "field": "Count", "title": "Total User Interactions", "type": "quantitative"}, "y": {"axis": {"titleFontSize": 14}, "field": "acting_username", "sort": "-x", "title": "Users", "type": "nominal"}}, "height": 400, "title": "Most Active Users (advanced_algorithms)", "width": 600, "$schema": "https://vega.github.io/schema/vega-lite/v5.20.1.json", "datasets": {"data-6c45f8f040431f873997a1579c43d6c0": [{"acting_username": "21f1006304", "Activity Type": "created_new_topic", "Count": 3}, {"acting_username": "Krishnaaditi", "Activity Type": "created_new_topic", "Count": 3}, {"acting_username": "Saranath", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "Sugyani", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "arup.kr", "Activity Type": "created_new_topic", "Count": 5}, {"acting_username": "krishna7", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "navinkmrsingh", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "neeldhara", "Activity Type": "created_new_topic", "Count": 0}, {"acting_username": "royce", "Activity Type": "created_new_topic", "Count": 1}, {"acting_username": "soumyaa", "Activity Type": "created_new_topic", "Count": 1}, {"acting_username": "21f1006304", "Activity Type": "likes_given", "Count": 0}, {"acting_username": "Krishnaaditi", "Activity Type": "likes_given", "Count": 1}, {"acting_username": "Saranath", "Activity Type": "likes_given", "Count": 2}, {"acting_username": "Sugyani", "Activity Type": "likes_given", "Count": 0}, {"acting_username": "arup.kr", "Activity Type": "likes_given", "Count": 0}, {"acting_username": "krishna7", "Activity Type": "likes_given", "Count": 0}, {"acting_username": "navinkmrsingh", "Activity Type": "likes_given", "Count": 0}, {"acting_username": "neeldhara", "Activity Type": "likes_given", "Count": 2}, {"acting_username": "royce", "Activity Type": "likes_given", "Count": 0}, {"acting_username": "soumyaa", "Activity Type": "likes_given", "Count": 0}, {"acting_username": "21f1006304", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "Krishnaaditi", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "Saranath", "Activity Type": "likes_received", "Count": 2}, {"acting_username": "Sugyani", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "arup.kr", "Activity Type": "likes_received", "Count": 2}, {"acting_username": "krishna7", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "navinkmrsingh", "Activity Type": "likes_received", "Count": 1}, {"acting_username": "neeldhara", "Activity Type": "likes_received", "Count": 2}, {"acting_username": "royce", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "soumyaa", "Activity Type": "likes_received", "Count": 0}, {"acting_username": "21f1006304", "Activity Type": "replied", "Count": 2}, {"acting_username": "Krishnaaditi", "Activity Type": "replied", "Count": 7}, {"acting_username": "Saranath", "Activity Type": "replied", "Count": 2}, {"acting_username": "Sugyani", "Activity Type": "replied", "Count": 5}, {"acting_username": "arup.kr", "Activity Type": "replied", "Count": 10}, {"acting_username": "krishna7", "Activity Type": "replied", "Count": 1}, {"acting_username": "navinkmrsingh", "Activity Type": "replied", "Count": 0}, {"acting_username": "neeldhara", "Activity Type": "replied", "Count": 4}, {"acting_username": "royce", "Activity Type": "replied", "Count": 0}, {"acting_username": "soumyaa", "Activity Type": "replied", "Count": 0}, {"acting_username": "21f1006304", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "Krishnaaditi", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "Saranath", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "Sugyani", "Activity Type": "solved_a_topic", "Count": 2}, {"acting_username": "arup.kr", "Activity Type": "solved_a_topic", "Count": 2}, {"acting_username": "krishna7", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "navinkmrsingh", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "neeldhara", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "royce", "Activity Type": "solved_a_topic", "Count": 0}, {"acting_username": "soumyaa", "Activity Type": "solved_a_topic", "Count": 0}]}};
+      var embedOpt = {"mode": "vega-lite"};
+
+      function showError(el, error){
+          el.innerHTML = ('<div style="color:red;">'
+                          + '<p>JavaScript Error: ' + error.message + '</p>'
+                          + "<p>This usually means there's a typo in your chart specification. "
+                          + "See the javascript console for the full traceback.</p>"
+                          + '</div>');
+          throw error;
+      }
+      const el = document.getElementById('vis');
+      vegaEmbed("#vis", spec, embedOpt)
+        .catch(error => showError(el, error));
+    })(vegaEmbed);
+
+  </script>
+</body>
+</html>
