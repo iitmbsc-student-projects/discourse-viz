@@ -1,19 +1,20 @@
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from authlib.integrations.flask_client import OAuth
 import os
+import yaml
 
-# with open("./key.yaml", "r") as file:
-#     keys = yaml.safe_load(file)
+with open("./key.yaml", "r") as file:
+    keys = yaml.safe_load(file)
 
 # GLOBAL VARIABLES
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY")  # Replace with your secret key
+app.secret_key = ""  # Replace with your secret key
 oauth = OAuth(app)
 
 google = oauth.register(
     name='google',
-    client_id= os.environ.get("GOOGLE_AUTH_CLIENT_ID"),
-    client_secret= os.environ.get("GOOGLE_AUTH_CLIENT_SECRET"),
+    client_id= "",
+    client_secret= "",
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
 )
@@ -117,6 +118,10 @@ def course_page(course_name):
     print(f"latest_visualizations_html_path === {latest_visualizations_html_path}")
 
     return render_template('course_specific_viz.html', course_name=course_name_original.title().replace("_"," "), latest_visualizations_html_path = latest_visualizations_html_path)
+
+@app.route('/search_user')
+def search_user():
+    return render_template('user.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

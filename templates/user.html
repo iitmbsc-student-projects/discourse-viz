@@ -1,0 +1,60 @@
+{% extends "login.html" %}
+
+{% block title %}Search Details for a Specific User{% endblock %}
+
+{% block styles %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+        color: #333;
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .search-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 50px;
+    }
+
+    .search-container textarea {
+        width: 300px;
+        height: 50px;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    .search-container button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .search-container button:hover {
+        background-color: #0056b3;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Search Details for a Specific User</h1>
+
+<div class="search-container">
+    <textarea placeholder="Enter username"></textarea>
+    <button>Search</button>
+</div>
+{% endblock %}

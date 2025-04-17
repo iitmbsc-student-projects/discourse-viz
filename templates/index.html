@@ -84,6 +84,16 @@
 
 {% block content %}
 <h1>Discourse Visualization</h1>
+
+<!-- Add a simple button below the heading -->
+<div style="text-align: center; margin: 20px 0;">
+    <a href="/search_user" target="_blank" style="text-decoration: none;">
+        <button style="padding: 10px 20px; border: none; border-radius: 5px; background-color: #007bff; color: white; font-weight: bold; cursor: pointer;">
+            Search User
+        </button>
+    </a>
+</div>
+
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 <ul class="flashes">

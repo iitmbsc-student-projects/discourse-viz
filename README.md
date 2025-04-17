@@ -19,6 +19,9 @@ This project visualizes user engagement metrics for various courses. It is built
     ```sh
     git clone https://github.com/iitmbsc-student-projects/discourse-viz.git
     cd discourse-viz
+
+    ## To open the repository directly in the VSCode, use the following command:
+    code .
     ```
 
 2. Create and activate a virtual environment:
