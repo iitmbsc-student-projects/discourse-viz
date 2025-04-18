@@ -88,16 +88,33 @@
 
         const resultsDiv = document.getElementById('results');
 
+        // resultsDiv.innerHTML = `
+        //     <h3>Basic Metrics</h3>
+        //     ${Array.isArray(data.basic_metrics) ? createTableFromObject(data.basic_metrics) : `<pre>${JSON.stringify(data.basic_metrics, null, 2)}</pre>`}
+
+        //     <h3>Top Categories</h3>
+        //     ${Array.isArray(data.top_categories) ? createTableFromObject(data.top_categories) : `<pre>${JSON.stringify(data.top_categories, null, 2)}</pre>`}
+
+        //     <h3>Most Liked By</h3>
+        //     ${Array.isArray(data.most_liked_by) ? createTableFromObject(data.most_liked_by) : `<pre>${JSON.stringify(data.most_liked_by, null, 2)}</pre>`}
+        // `;
         resultsDiv.innerHTML = `
+    <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+        <div style="background-color: lightgreen; padding: 12px;">
             <h3>Basic Metrics</h3>
             ${Array.isArray(data.basic_metrics) ? createTableFromObject(data.basic_metrics) : `<pre>${JSON.stringify(data.basic_metrics, null, 2)}</pre>`}
-
+        </div>
+        <div style="background-color:#FFCF79; padding: 12px;">
             <h3>Top Categories</h3>
             ${Array.isArray(data.top_categories) ? createTableFromObject(data.top_categories) : `<pre>${JSON.stringify(data.top_categories, null, 2)}</pre>`}
-
+        </div>
+        <div style="background-color:#E5E4D7; padding: 12px;">
             <h3>Most Liked By</h3>
             ${Array.isArray(data.most_liked_by) ? createTableFromObject(data.most_liked_by) : `<pre>${JSON.stringify(data.most_liked_by, null, 2)}</pre>`}
-        `;
+        </div>
+    </div>
+`;
+
     }
 </script>
 {% endblock %}
