@@ -1,20 +1,22 @@
-from flask import Flask, render_template, redirect, url_for, session, request, flash
+from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify
 from authlib.integrations.flask_client import OAuth
 import os
 import yaml
+from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users, get_user_email
 
-with open("./key.yaml", "r") as file:
-    keys = yaml.safe_load(file)
+
+# with open("./key.yaml", "r") as file:
+#     keys = yaml.safe_load(file)
 
 # GLOBAL VARIABLES
 app = Flask(__name__)
-app.secret_key = ""  # Replace with your secret key
+app.secret_key = os.environ.get("SECRET_KEY")  # Replace with your secret key
 oauth = OAuth(app)
 
 google = oauth.register(
     name='google',
-    client_id= "",
-    client_secret= "",
+    client_id= os.environ.get("GOOGLE_AUTH_CLIENT_ID"),
+    client_secret= os.environ.get("GOOGLE_AUTH_CLIENT_SECRET"),
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
 )
@@ -42,7 +44,7 @@ def index():
     overall_discourse_charts_path = os.path.join(app.static_folder, 'visualizations', 'overall_discourse_charts')
     overall_discourse_charts = os.listdir(overall_discourse_charts_path)
     latest_chart = find_latest_chart(overall_discourse_charts)
-    print("LATEST_CHART = ", latest_chart)
+    # print("LATEST_CHART = ", latest_chart)
 
     # Get the selected chart from the query parameters
     selected_chart = request.args.get('chart')
@@ -61,7 +63,7 @@ def get_chart():
     chart = request.args.get('chart')
     if chart:
         chart_path = os.path.join(app.static_folder, 'visualizations', 'overall_discourse_charts', chart)
-        print(f"Requested chart path: {chart_path}")  # Debugging line
+        # print(f"Requested chart path: {chart_path}")  # Debugging line
         chart_html = f"""
         <h2>Selected Chart: {chart.split('.')[0].replace('_', ' ')}</h2>
         <iframe src="{url_for('static', filename='visualizations/overall_discourse_charts/' + chart)}" 
@@ -108,16 +110,27 @@ def authorized():
 @app.route("/<course_name>")
 def course_page(course_name):
     course_name_original = course_name
-    print(f"Recieved course name = {course_name}")
+    # print(f"Recieved course name = {course_name}")
     course_name = course_name.replace("-", "_").replace(":","_")
-    print(f"NEW course name = {course_name}")
+    # print(f"NEW course name = {course_name}")
 
     # Get path to Altair-generated HTML visualizations
     latest_visualizations_html_path = url_for('static', filename=f'visualizations/course_specific_charts/t1_2025/{course_name}.html')
 
-    print(f"latest_visualizations_html_path === {latest_visualizations_html_path}")
+    # print(f"latest_visualizations_html_path === {latest_visualizations_html_path}")
 
     return render_template('course_specific_viz.html', course_name=course_name_original.title().replace("_"," "), latest_visualizations_html_path = latest_visualizations_html_path)
+
+@app.route("/user_details/<user_name>", methods=["GET"])
+def get_user_details(user_name):
+    summary_data = get_user_summary(user_name)
+    basic_metrics, top_categories, most_liked_by, email = get_basic_metrics(summary_data), get_top_categories(summary_data), get_liked_by_users(summary_data), get_user_email(user_name)
+    return jsonify({
+        'basic_metrics': basic_metrics.to_dict(orient="records"),
+        'top_categories': top_categories.to_dict(orient="records"),
+        'most_liked_by': most_liked_by.to_dict(orient="records"),
+        "email": email
+    })
 
 @app.route('/search_user')
 def search_user():

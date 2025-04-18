@@ -54,7 +54,51 @@
 <h1>Search Details for a Specific User</h1>
 
 <div class="search-container">
-    <textarea placeholder="Enter username"></textarea>
-    <button>Search</button>
+    <textarea id="username" placeholder="Enter username"></textarea>
+    <button onclick="searchUser()">Search</button>
 </div>
+
+<div id="results"></div>
+
+<script>
+    function createTableFromObject(obj) {
+        let html = '<table border="1" cellpadding="8" cellspacing="0" style="margin: 10px auto; border-collapse: collapse;">';
+        html += '<thead><tr>';
+        for (let key in obj[0]) {
+            html += `<th>${key}</th>`;
+        }
+        html += '</tr></thead><tbody>';
+        for (let row of obj) {
+            html += '<tr>';
+            for (let key in row) {
+                html += `<td>${row[key]}</td>`;
+            }
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+        return html;
+    }
+
+    async function searchUser() {
+        const username = document.getElementById('username').value.trim();
+        if (!username) return alert("Please enter a username");
+
+        const response = await fetch(`/user_details/${username}`);
+        const data = await response.json();
+
+        const resultsDiv = document.getElementById('results');
+
+        resultsDiv.innerHTML = `
+            <h2>User email: ${data.email}</h2>
+            <h3>Basic Metrics</h3>
+            ${Array.isArray(data.basic_metrics) ? createTableFromObject(data.basic_metrics) : `<pre>${JSON.stringify(data.basic_metrics, null, 2)}</pre>`}
+
+            <h3>Top Categories</h3>
+            ${Array.isArray(data.top_categories) ? createTableFromObject(data.top_categories) : `<pre>${JSON.stringify(data.top_categories, null, 2)}</pre>`}
+
+            <h3>Most Liked By</h3>
+            ${Array.isArray(data.most_liked_by) ? createTableFromObject(data.most_liked_by) : `<pre>${JSON.stringify(data.most_liked_by, null, 2)}</pre>`}
+        `;
+    }
+</script>
 {% endblock %}

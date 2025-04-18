@@ -85,6 +85,7 @@
 {% block content %}
 <h1>Discourse Visualization</h1>
 
+{% if 'user' in session %}
 <!-- Add a simple button below the heading -->
 <div style="text-align: center; margin: 20px 0;">
     <a href="/search_user" target="_blank" style="text-decoration: none;">
@@ -93,6 +94,7 @@
         </button>
     </a>
 </div>
+{% endif %}
 
 {% with messages = get_flashed_messages() %}
 {% if messages %}
