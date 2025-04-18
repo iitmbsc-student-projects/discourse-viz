@@ -89,7 +89,6 @@
         const resultsDiv = document.getElementById('results');
 
         resultsDiv.innerHTML = `
-            <h2>User email: ${data.email}</h2>
             <h3>Basic Metrics</h3>
             ${Array.isArray(data.basic_metrics) ? createTableFromObject(data.basic_metrics) : `<pre>${JSON.stringify(data.basic_metrics, null, 2)}</pre>`}
 

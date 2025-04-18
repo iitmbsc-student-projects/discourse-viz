@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, session, request, f
 from authlib.integrations.flask_client import OAuth
 import os
 import yaml
-from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users, get_user_email
+from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users
 
 
 # with open("./key.yaml", "r") as file:
@@ -124,12 +124,12 @@ def course_page(course_name):
 @app.route("/user_details/<user_name>", methods=["GET"])
 def get_user_details(user_name):
     summary_data = get_user_summary(user_name)
-    basic_metrics, top_categories, most_liked_by, email = get_basic_metrics(summary_data), get_top_categories(summary_data), get_liked_by_users(summary_data), get_user_email(user_name)
+    basic_metrics, top_categories, most_liked_by = get_basic_metrics(summary_data), get_top_categories(summary_data), get_liked_by_users(summary_data)
     return jsonify({
         'basic_metrics': basic_metrics.to_dict(orient="records"),
         'top_categories': top_categories.to_dict(orient="records"),
         'most_liked_by': most_liked_by.to_dict(orient="records"),
-        "email": email
+        # "email": email
     })
 
 @app.route('/search_user')
