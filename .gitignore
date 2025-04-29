@@ -5,3 +5,5 @@ myenv/*
 *xlsx
 *json
 TP/*
+data*
+temp*
