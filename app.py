@@ -51,8 +51,8 @@ def generate_chart_for_overall_engagement(term):
     unnormalized_df = user_actions_dictionaries[term]["overall"]["unnormalized_scores"]
     unnormalized_df = unnormalized_df[unnormalized_df["user_id"]>0]
     top_10_users = pd.DataFrame(unnormalized_df.head(10))
-    # id_username_mapping = execute_query_108(query_id=108)
-    id_username_mapping = pd.read_csv("data/id_username_mapping.csv")
+    id_username_mapping = execute_query_108(query_id=108)
+    # id_username_mapping = pd.read_csv("data/id_username_mapping.csv")
     top_10_users = top_10_users.merge(id_username_mapping, on="user_id")
     chart = create_stacked_bar_chart_for_overall_engagement(top_10_users, term=term)
     return chart
