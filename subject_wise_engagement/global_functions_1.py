@@ -118,6 +118,13 @@ def create_log_normalized_scores_dataframe(df):
 
 @lru_cache(maxsize=None)
 def get_all_course_specific_df(query_params):
+    """
+    Calls the query_103 using parameters {category_id, start_date, end_date} to get user_actions_df which is then used to create and return 3 dataframes:
+    
+    1. RAW METRICS: This dataframe simply shows the metrics of each user, e.g likes_given, topics_created etc, for that specific course
+    2. UNNORMALIZED_SCORES DF: Sum of [ raw_metric*weightage ]
+    3. LOG-NORMALIZED SCORE: Sum of [ log1p(raw_metric) * weightage ]
+    """
     query_params = dict(query_params)
     print(f'Executing query_103 for cat_id={query_params["category_id"]} and dates={query_params["start_date"]}; {query_params["end_date"]}') # REMOVE
     user_actions_df = execute_query_103(103, query_params)

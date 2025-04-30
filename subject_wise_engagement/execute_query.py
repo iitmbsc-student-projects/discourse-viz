@@ -68,7 +68,7 @@ def execute_query_103(query_id, query_params=None): # for course-specific user a
 
         iteration_count += 1  # Increment iteration count for pagination
         # if iteration_count>2: break # REMOVE
-        time.sleep(1.4)  # Wait before the next request
+        time.sleep(1.2)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
@@ -153,7 +153,7 @@ def execute_query_107(query_id, query_params=None): # fetch category_ids
             break
 
         iteration_count += 1  # Increment iteration count for pagination
-        time.sleep(1)  # Wait before the next request
+        time.sleep(1.2)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
@@ -223,7 +223,7 @@ def execute_query_108(query_id, query_params=None): # userid-name mapping
             break
 
         iteration_count += 1  # Increment iteration count for pagination
-        time.sleep(1)  # Wait before the next request
+        time.sleep(1.2)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
@@ -255,11 +255,8 @@ def execute_query_102(query_id, query_params=None): # overall discourse engageme
         "Api-Username": "shubhamG",  # Set the username for the API
         "Content-Type": "multipart/form-data"  # Set content type
     }
-    count=0
     # Loop until there are no more results
     while has_more_results:
-        count+=1
-        # if count>1: break # REMOVE
         # Construct the request URL for the API
         request_url = f"{DISCOURSE_BASE_URL}/g/{GROUP_NAME}/reports/{query_id}/run"
 
@@ -295,9 +292,7 @@ def execute_query_102(query_id, query_params=None): # overall discourse engageme
             break
 
         iteration_count += 1  # Increment iteration count for pagination
-        if iteration_count>50:
-            break
-        time.sleep(1)  # Wait before the next request
+        time.sleep(1.2)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results

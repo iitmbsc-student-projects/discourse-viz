@@ -18,7 +18,10 @@ from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")  # secret key to secure cookies and session data.
 oauth = OAuth(app) # OAuth is a way to safely let users login using Google without handling their passwords yourself
+
+# DATA VARIABLES
 user_actions_dictionaries = get_all_data_dicts()
+id_username_mapping = execute_query_108(query_id=108)
 
 google = oauth.register( # Then you told OAuth: Hey OAuth
     
@@ -51,7 +54,6 @@ def generate_chart_for_overall_engagement(term):
     unnormalized_df = user_actions_dictionaries[term]["overall"]["unnormalized_scores"]
     unnormalized_df = unnormalized_df[unnormalized_df["user_id"]>0]
     top_10_users = pd.DataFrame(unnormalized_df.head(10))
-    id_username_mapping = execute_query_108(query_id=108)
     # id_username_mapping = pd.read_csv("data/id_username_mapping.csv")
     top_10_users = top_10_users.merge(id_username_mapping, on="user_id")
     chart = create_stacked_bar_chart_for_overall_engagement(top_10_users, term=term)

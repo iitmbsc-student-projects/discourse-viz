@@ -1,45 +1,3 @@
-# %% [markdown]
-# # Dictionary Structure for User Engagement Charts
-# 
-# In this notebook, I have created a dictionary named `user_action_dictionaries` which stores the charts of each course and also the overall engagement charts term-wise. 
-# 
-# ## Structure of the Dictionary
-# 
-# ```python
-# {
-#     "t1-2025": {
-#         "overall": {
-#             "raw_metrics": "raw_df",
-#             "unnormalized_scores": "unnormalized_df",
-#             "log_normalized_scores": "log_normalized_df"
-#         },
-#         "subject_1": {
-#             "raw_metrics": "raw_df",
-#             "unnormalized_scores": "unnormalized_df",
-#             "log_normalized_scores": "log_normalized_df"
-#         },
-#         "subject_2": {
-#             "raw_metrics": "raw_df",
-#             "unnormalized_scores": "unnormalized_df",
-#             "log_normalized_scores": "log_normalized_df"
-#         }
-#     },
-#     "t3-2024": {
-#         "overall": {
-#             "raw_metrics": "raw_df",
-#             "unnormalized_scores": "unnormalized_df",
-#             "log_normalized_scores": "log_normalized_df"
-#         },
-#         "subject_1": {
-#             "raw_metrics": "raw_df",
-#             "unnormalized_scores": "unnormalized_df",
-#             "log_normalized_scores": "log_normalized_df"
-#         }
-#     },
-#     "t2-2024": "...same",
-#     "t1-2024": "...same"
-# }
-# 
 
 def get_all_data_dicts():
     import pandas as pd
@@ -63,13 +21,9 @@ def get_all_data_dicts():
         }
         return (f"{trimester_dates[t][0]}/{y}",f"{trimester_dates[t][1]}/{y}")
 
-
-    user_actions_dictionaries = {}
-    for k in curr_plus_prev_trimesters:
-        user_actions_dictionaries[k] = {}
-
     error_list = []
-    for key in user_actions_dictionaries: # keys are actually the terms, like "t1-2025","t3-2024"
+    for term in curr_plus_prev_trimesters: # keys are actually the terms, like "t1-2025","t3-2024"
+        user_actions_dictionaries[term] = {}
         count=0
         try:
             for row in df_map_category_to_id.itertuples():
@@ -77,14 +31,13 @@ def get_all_data_dicts():
                 # if count>2: break
                 try:
                     category_id = row.category_id
-                    category_name = sanitize_filepath(row.name).lower() # Proper filenames without :," " etc
+                    category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
                     print("category_name = ", category_name)
                     if category_name not in user_actions_dictionaries[key]:
                         user_actions_dictionaries[key][category_name] = {}
                         user_actions_dictionaries[key][category_name]["raw_metrics"] = pd.DataFrame()
                         user_actions_dictionaries[key][category_name]["unnormalized_scores"] = pd.DataFrame()
                         user_actions_dictionaries[key][category_name]["log_normalized_scores"] = pd.DataFrame()
-                    term = key
                     start_date, end_date = get_trimester_dates(term)
                     params = {"category_id": str(category_id), "start_date": start_date, "end_date": end_date}
                     
