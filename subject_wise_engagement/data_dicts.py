@@ -56,12 +56,10 @@ def get_all_data_dicts():
                 except Exception as exec:
                     print(f"Error: {exec} for subject: {category_name} for term: {term}")
                     error_list.append(key,category_name,exec)
-                    raise
                     continue
         except Exception as exec:
             print(f"Error: {exec} for term: {term}")
             error_list.append(term)
-            raise
             continue
 
 
