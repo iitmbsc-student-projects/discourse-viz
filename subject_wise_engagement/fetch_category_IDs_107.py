@@ -26,7 +26,9 @@ Control Engineering
 Digital System Design
 Sensors and Application
 Electronics Lab
-Introduction to Linux Shell"""
+Introduction to Linux Shell
+electromagnetic_fields_and_transmission_lines
+electronic_product_design"""
 irrelevant_categories = irrelevant_categories.replace("\n",",").split(",")
 # Remove rows where "name" column doesn't have any of the irrelevant categories
 df_map_category_to_id = df_map_category_to_id[~df_map_category_to_id["name"].isin(irrelevant_categories)]

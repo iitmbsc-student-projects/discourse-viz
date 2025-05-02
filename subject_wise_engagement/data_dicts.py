@@ -20,10 +20,12 @@ def get_all_data_dicts():
             't3': ('01/09', '31/12')
         }
         return (f"{trimester_dates[t][0]}/{y}",f"{trimester_dates[t][1]}/{y}")
-
+    user_actions_dictionaries = {}
     error_list = []
+
     for term in curr_plus_prev_trimesters: # keys are actually the terms, like "t1-2025","t3-2024"
-        user_actions_dictionaries[term] = {}
+        key=term
+        user_actions_dictionaries[key] = {}
         count=0
         try:
             for row in df_map_category_to_id.itertuples():
@@ -54,15 +56,16 @@ def get_all_data_dicts():
                 except Exception as exec:
                     print(f"Error: {exec} for subject: {category_name} for term: {term}")
                     error_list.append(key,category_name,exec)
+                    raise
                     continue
         except Exception as exec:
-            print(f"Error: {exec} for term: {key}")
-            error_list.append(key)
+            print(f"Error: {exec} for term: {term}")
+            error_list.append(term)
+            raise
             continue
 
 
-    for key in user_actions_dictionaries:
-        term=key
+    for term in curr_plus_prev_trimesters:
         start_date, end_date = get_trimester_dates(term)
         params = {"start_date": start_date, "end_date": end_date}
         

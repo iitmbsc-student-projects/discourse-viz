@@ -73,7 +73,7 @@ def get_users_engagement_chart(course, user_list, term="t1-2025"):
 @lru_cache(maxsize=None)
 def generate_chart_for_course_specific_engagement(term, subject):
     print("SUBJECT = ", subject, "TERM = ",term)
-    print(f"KEYS = {user_actions_dictionaries[term].keys()}")
+    # print(f"KEYS = {user_actions_dictionaries[term].keys()}")
     log_normalized_df = user_actions_dictionaries[term][subject]["log_normalized_scores"]
     if not log_normalized_df.empty:
         top_10 = log_normalized_df.head(10).acting_username.to_list()

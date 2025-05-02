@@ -160,6 +160,7 @@ def execute_query_107(query_id, query_params=None): # fetch category_ids
 
 @lru_cache(maxsize=None, typed=False)
 def execute_query_108(query_id, query_params=None): # userid-name mapping
+    print("Now inside execute_query_108 for userid-name mapping")
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
     GROUP_NAME = "discourse_analytics"
     API_KEY_GLOBAL= os.environ.get('API_KEY')
@@ -200,7 +201,7 @@ def execute_query_108(query_id, query_params=None): # userid-name mapping
 
         try:
             # Send POST request to the API
-            print(data_payload)
+            # print(data_payload)
             response = requests.request("POST", request_url, data=data_payload, headers=headers)
             response.raise_for_status()  # Raise an error for bad responses
 
