@@ -55,7 +55,7 @@ def get_all_data_dicts():
 
                 except Exception as exec:
                     print(f"Error: {exec} for subject: {category_name} for term: {term}")
-                    error_list.append(key,category_name,exec)
+                    error_list.append((key,category_name,exec))
                     continue
         except Exception as exec:
             print(f"Error: {exec} for term: {term}")
