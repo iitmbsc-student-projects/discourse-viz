@@ -1,6 +1,7 @@
 from functools import lru_cache
 import time, requests, json, os
 import pandas as pd
+import winsound
 
 def execute_query_103(query_id, query_params=None): # for course-specific user actions
     print("Now inside query 103") # REMOVE
@@ -44,7 +45,6 @@ def execute_query_103(query_id, query_params=None): # for course-specific user a
 
         try:
             # Send POST request to the API
-            # print(data_payload)
             response = requests.request("POST", request_url, data=data_payload, headers=headers)
             response.raise_for_status()  # Raise an error for bad responses
 
@@ -61,14 +61,18 @@ def execute_query_103(query_id, query_params=None): # for course-specific user a
                 results_list.append(dict(zip(json_response['columns'], json_response['rows'][index])))
 
         except Exception as e:
-            # Log key-related errors
-            print(f'error: {e}')
-            has_more_results = False  # Stop fetching results
-            break
+            # winsound.Beep(frequency=1000, duration=500)
+            # Check for specific 429 error in the exception message
+            if "429" in str(e) and "Too Many Requests" in str(e):
+                raise RuntimeError(f"Stopping execution due to rate limiting: {e} for query_params = {query_params} inside 103")
+            else:
+                # Log other exceptions
+                print(f'error: {e}')
+
 
         iteration_count += 1  # Increment iteration count for pagination
         # if iteration_count>2: break # REMOVE
-        time.sleep(1.2)  # Wait before the next request
+        time.sleep(1.8)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
@@ -76,6 +80,7 @@ def execute_query_103(query_id, query_params=None): # for course-specific user a
 
 @lru_cache(maxsize=None, typed=False)
 def execute_query_107(query_id, query_params=None): # fetch category_ids
+    print("RIGHT NOW INSIDE QUERY 107 FOR FETCHING CATEGORY_IDS")
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
     GROUP_NAME = "discourse_analytics"
     API_KEY_GLOBAL= os.environ.get('API_KEY')
@@ -133,6 +138,7 @@ def execute_query_107(query_id, query_params=None): # fetch category_ids
                 results_list.append(dict(zip(json_response['columns'], json_response['rows'][index])))
 
         except requests.exceptions.RequestException as e:
+            # winsound.Beep(frequency=1000, duration=500)
             # Log request-related errors
             # logging.error(f'Request error: {e}')
             if hasattr(e, 'response') and e.response is not None:
@@ -153,7 +159,7 @@ def execute_query_107(query_id, query_params=None): # fetch category_ids
             break
 
         iteration_count += 1  # Increment iteration count for pagination
-        time.sleep(1.2)  # Wait before the next request
+        time.sleep(1.8)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
@@ -218,20 +224,21 @@ def execute_query_108(query_id, query_params=None): # userid-name mapping
                 results_list.append(dict(zip(json_response['columns'], json_response['rows'][index])))
 
         except Exception as e:
+            # winsound.Beep(frequency=1000, duration=500)
             # Log key-related errors
             print(f'EXCEPTION: {e}')
             has_more_results = False  # Stop fetching results
             break
 
         iteration_count += 1  # Increment iteration count for pagination
-        time.sleep(1.2)  # Wait before the next request
+        time.sleep(1.8)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
 
 
 def execute_query_102(query_id, query_params=None): # overall discourse engagement
-    print(f"Now inside query 102") # REMOVE
+    print(f"Now inside query 102 overall discourse engagement FOR PARAMS = {query_params}") # REMOVE
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
     GROUP_NAME = "discourse_analytics"
     API_KEY_GLOBAL= os.environ.get('API_KEY')
@@ -288,12 +295,13 @@ def execute_query_102(query_id, query_params=None): # overall discourse engageme
                 results_list.append(dict(zip(json_response['columns'], json_response['rows'][index])))
 
         except Exception as e:
+            # winsound.Beep(frequency=1000, duration=500)
             has_more_results = False  # Stop fetching results
             print(f"Error: {e}")
             break
 
         iteration_count += 1  # Increment iteration count for pagination
-        time.sleep(1.2)  # Wait before the next request
+        time.sleep(1.8)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
