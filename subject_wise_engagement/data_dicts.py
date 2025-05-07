@@ -10,7 +10,7 @@ def get_all_data_dicts():
     # from global_functions_1 import sanitize_filepath, get_current_trimester, get_previous_trimesters,get_all_course_specific_df, get_overall_engagement_df
     # from fetch_category_IDs_107 import df_map_category_to_id
 
-    curr_plus_prev_trimesters = get_previous_trimesters(get_current_trimester())[:2] # The items of this list will act as keys of the dictionary.
+    curr_plus_prev_trimesters = get_previous_trimesters(get_current_trimester())[:1] # The items of this list will act as keys of the dictionary.
 
     def get_trimester_dates(trimester): # THIS WILL HELP IN SENDING DATES AS PARAMS FOR QUERIES LIKE 103
         t, y = trimester.split('-')
@@ -30,7 +30,7 @@ def get_all_data_dicts():
         try:
             for row in df_map_category_to_id.itertuples():
                 # count+=1
-                # if count>2: break
+                if count>3: break
                 try:
                     category_id = row.category_id
                     category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
