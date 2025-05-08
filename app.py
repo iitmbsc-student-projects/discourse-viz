@@ -60,7 +60,7 @@ def generate_chart_for_overall_engagement(term):
     return chart
 
 @lru_cache(maxsize=None)
-def get_users_engagement_chart(course, user_list, term="t2-2025"): # TERM NEEDS TO BE CHANGED. THIS IS DONE ONLY FOR TESTING PURPOSE
+def get_users_engagement_chart(course, user_list, term="t1-2025"):
     user_list = [name.lower().strip() for name in user_list]
     relevant_df = user_actions_dictionaries[term][course]["unnormalized_scores"]
     relevant_df = relevant_df[(relevant_df["acting_username"].str.lower()).isin(user_list)] # filter based on user_list
