@@ -29,10 +29,11 @@ def get_all_data_dicts():
         count=0
         try:
             for row in df_map_category_to_id.itertuples():
-                count+=1
-                if count>3: break
+                # count+=1
+                # if count>1: break
                 try:
                     category_id = row.category_id
+                    if not category_id==53: continue
                     category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
                     print("category_name = ", category_name)
                     if category_name not in user_actions_dictionaries[key]:
@@ -40,10 +41,11 @@ def get_all_data_dicts():
                         user_actions_dictionaries[key][category_name]["raw_metrics"] = pd.DataFrame()
                         user_actions_dictionaries[key][category_name]["unnormalized_scores"] = pd.DataFrame()
                         user_actions_dictionaries[key][category_name]["log_normalized_scores"] = pd.DataFrame()
+                        user_actions_dictionaries[key][category_name]["unique_topic_ids"] = []
                     start_date, end_date = get_trimester_dates(term)
                     params = {"category_id": str(category_id), "start_date": start_date, "end_date": end_date}
                     
-                    raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df = get_all_course_specific_df(query_params=tuple(params.items()))
+                    raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids = get_all_course_specific_df(query_params=tuple(params.items()))
 
                     # if not user_actions_df.empty and len(user_actions_df)>75: # THIS WILL BE IMPLEMENTED LATER AFTER DISCUSSION
                         
@@ -52,6 +54,8 @@ def get_all_data_dicts():
                     user_actions_dictionaries[key][category_name]["unnormalized_scores"] = unnormalized_scores_df
 
                     user_actions_dictionaries[key][category_name]["log_normalized_scores"] = log_normalized_scores_df
+
+                    user_actions_dictionaries[key][category_name]["unique_topic_ids"] = unique_topic_ids
 
                 except Exception as exec:
                     print(f"Error: {exec} for subject: {category_name} for term: {term}")

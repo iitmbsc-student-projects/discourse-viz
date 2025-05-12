@@ -11,6 +11,9 @@
     </div>
 </div>
 
+<div id="most-frequent-first-responders">
+    <p>Loading top responders...</p>
+</div>
 
 
 <div id="specific-users">
@@ -42,35 +45,48 @@
             method: "POST",
             body: formData,
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.error || "An error occurred");
-                });
-            }
-            return response.text(); // Raw HTML
-        })
-        .then(html => {
-            // Create a Blob from the HTML and generate a URL
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || "An error occurred");
+                    });
+                }
+                return response.text(); // Raw HTML
+            })
+            .then(html => {
+                // Create a Blob from the HTML and generate a URL
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
 
-            // Inject it into an iframe
-            const iframe = document.createElement("iframe");
-            iframe.src = url;
-            iframe.style.width = "100%";
-            iframe.style.height = "500px";
-            iframe.style.border = "none";
+                // Inject it into an iframe
+                const iframe = document.createElement("iframe");
+                iframe.src = url;
+                iframe.style.width = "100%";
+                iframe.style.height = "500px";
+                iframe.style.border = "none";
 
-            const container = document.getElementById("chart-container");
-            container.innerHTML = ""; // Clear old content
-            container.appendChild(iframe);
+                const container = document.getElementById("chart-container");
+                container.innerHTML = ""; // Clear old content
+                container.appendChild(iframe);
 
-            document.getElementById("error-message").textContent = "";
-        })
-        .catch(error => {
-            document.getElementById("error-message").textContent = error.message;
-        });
+                document.getElementById("error-message").textContent = "";
+            })
+            .catch(error => {
+                document.getElementById("error-message").textContent = error.message;
+            });
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const courseName = "{{ course_name }}";
+        fetch(`/get_most_frequent_first_responders/${courseName}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById("most-frequent-first-responders").innerHTML = html;
+            })
+            .catch(err => {
+                document.getElementById("most-frequent-first-responders").innerHTML = "<p style='color: red;'>Failed to load data.</p>";
+                console.error(err);
+            });
     });
 </script>
 {% endif %}

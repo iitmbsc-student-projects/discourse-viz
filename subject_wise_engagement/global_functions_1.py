@@ -1,4 +1,4 @@
-import re
+import re, os
 from datetime import date
 import pandas as pd
 import numpy as np
@@ -124,17 +124,21 @@ def get_all_course_specific_df(query_params):
     1. RAW METRICS: This dataframe simply shows the metrics of each user, e.g likes_given, topics_created etc, for that specific course
     2. UNNORMALIZED_SCORES DF: Sum of [ raw_metric*weightage ]
     3. LOG-NORMALIZED SCORE: Sum of [ log1p(raw_metric) * weightage ]
+    4. unique_topic_ids: List of unique topic-ids for that course in the time-frame
     """
     query_params = dict(query_params)
     print(f'Executing query_103 for cat_id={query_params["category_id"]} and dates={query_params["start_date"]}; {query_params["end_date"]}') # REMOVE
     user_actions_df = execute_query_103(103, query_params)
+    # user_actions_df.info()
+    unique_topic_ids = user_actions_df[user_actions_df["target_post_id"] == -1]["target_topic_id"].unique()
+    # print(f"We got the following unique topic-is for the cat_id = {query_params['category_id']}\n\n {unique_topic_ids}\n*")
     if user_actions_df.empty:
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame() # Return 3 empty DFs
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), [] # Return 3 empty DFs + one empty list
     
     raw_metrics_df = create_raw_metrics_dataframe(user_actions_df)
     unnormalized_scores_df = create_unnormalized_scores_dataframe(raw_metrics_df)
     log_normalized_scores_df = create_log_normalized_scores_dataframe(raw_metrics_df)
-    return raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df
+    return raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids
 
 # Assign the weights to the relevant columns. This can be changed as per the requirement.
 weights_dict_for_overall_engaagement = { 'likes_given': 0.4, # likes_given is also important
@@ -174,3 +178,34 @@ def get_overall_engagement_df(query_params):
     raw_metrics_df = raw_metrics_df[["user_id"] + list(weights_dict_for_overall_engaagement.keys())]
     unnormalized_scores_dataframe, log_normalized_scores_dataframe = create_unnormalized_scores_dataframe_for_all_users(raw_metrics_df), create_log_normalized_scores_dataframe_for_all_users(raw_metrics_df)
     return raw_metrics_df, unnormalized_scores_dataframe, log_normalized_scores_dataframe
+
+
+import time, requests
+@lru_cache(maxsize=None)
+def get_top_10_first_responders(topic_list):
+    headers = {
+                "Api-Key": os.environ.get('API_KEY'),
+                "Api-Username": "shubhamg"
+           }
+    # print("HEADERS = ", headers)
+    most_frequent_users = {}
+    for t in topic_list:
+        try:
+            response = requests.get(
+                url = f"https://discourse.onlinedegree.iitm.ac.in/t/{t}.json",
+                headers=headers
+                            )
+            D = response.json()
+            posts = D["post_stream"]["posts"] # List of dicts each having details of each post of that topic
+            for post in posts:
+                if post["post_number"]==2: # If it is the second post in that topic, meaning the first response to that topic
+                    username = post["username"] # Find the username of the first responder
+                    most_frequent_users[username] = most_frequent_users.get(username,0)+1 # Increment the frequqncy of first-responder
+            time.sleep(0.9)
+        except Exception as e:
+            print(f"Encountered an ERROR when trying to find details for the topic {t}")
+            continue
+
+    sorted_users = sorted(most_frequent_users.items(), key=lambda x: x[1], reverse=True)
+    top_10_first_responders = sorted_users[:10] # Note that this is a list of tuples
+    return top_10_first_responders

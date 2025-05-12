@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify
 from authlib.integrations.flask_client import OAuth
-import os, json
+import os, json, time
 import pandas as pd
 from functools import lru_cache
 from markupsafe import Markup
@@ -9,7 +9,7 @@ from markupsafe import Markup
 from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users
 
 from subject_wise_engagement.data_dicts import get_all_data_dicts
-from subject_wise_engagement.global_functions_1 import get_current_trimester
+from subject_wise_engagement.global_functions_1 import get_current_trimester, get_top_10_first_responders
 from subject_wise_engagement.execute_query import execute_query_108
 
 from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_overall_engagement, create_stacked_bar_chart_for_course_specific_engagement, create_empty_chart_in_case_of_errors
@@ -21,7 +21,8 @@ oauth = OAuth(app) # OAuth is a way to safely let users login using Google witho
 
 # DATA VARIABLES
 user_actions_dictionaries = get_all_data_dicts()
-id_username_mapping = execute_query_108(query_id=108)
+# id_username_mapping = execute_query_108(query_id=108)
+id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv")
 
 google = oauth.register( # Then you told OAuth: Hey OAuth
     
@@ -75,15 +76,21 @@ def generate_chart_for_course_specific_engagement(term, subject):
     print("SUBJECT = ", subject, "TERM = ",term)
     # print(f"KEYS = {user_actions_dictionaries[term].keys()}")
     log_normalized_df = user_actions_dictionaries[term][subject]["log_normalized_scores"]
+
+    # Finding the top-10 users
     if not log_normalized_df.empty:
         top_10 = log_normalized_df.head(10).acting_username.to_list()
         raw_metrics = user_actions_dictionaries[term][subject]["raw_metrics"]
         raw_metrics = raw_metrics[raw_metrics.acting_username.isin(top_10)]
-        chart = create_stacked_bar_chart_for_course_specific_engagement(raw_metrics=raw_metrics, subject=subject)
+        highest_activity_chart = create_stacked_bar_chart_for_course_specific_engagement(raw_metrics=raw_metrics, subject=subject)
     else:
-        chart = create_empty_chart_in_case_of_errors(message = """Course was either not offered this term OR it had extremely less interactions on discourse""")
+        highest_activity_chart = create_empty_chart_in_case_of_errors(message = """Course was either not offered this term OR it had extremely less interactions on discourse""")
+
+
+    # Creating a calender-heatmap
+    pass
     
-    return chart
+    return highest_activity_chart
 
 @app.route('/')
 def index():
@@ -148,15 +155,12 @@ def course_page(course_name):
     try:
         course_name_original = course_name
         course_name = course_name.replace("-", "_").replace(":","_")
-        chart = generate_chart_for_course_specific_engagement(term="t1-2025", subject=course_name)
-        
-        # Convert the chart to an HTML string
-        chart_html = chart.to_html()
-
+        top_10_users_chart = generate_chart_for_course_specific_engagement(term="t1-2025", subject=course_name)
+        top_10_users_chart_html = top_10_users_chart.to_html() # # Convert the chart to an HTML string
         return render_template(
             'course_specific_viz.html',
             course_name=course_name_original.title().replace("_"," "),
-            latest_visualizations_html=Markup(chart_html)  # Mark it safe explicitly
+            latest_visualizations_html=Markup(top_10_users_chart_html),  # Mark it safe explicitly
         )
     except Exception as e:
         return render_template(
@@ -164,6 +168,17 @@ def course_page(course_name):
             course_name=course_name_original.title().replace("_"," "),
             latest_visualizations_html=Markup(create_empty_chart_in_case_of_errors().to_html())
         )
+
+@app.route("/get_most_frequent_first_responders/<course_name>", methods = ["GET"])
+def most_frequent_first_responders(course_name):
+    course_name = course_name.replace("-", "_").replace(":","_").lower()
+    # Finding most-frequent first-responders
+    unique_topics = user_actions_dictionaries["t1-2025"][course_name]["unique_topic_ids"]
+    # print(unique_topics[:5])
+    most_freq_first_responders_list = get_top_10_first_responders(tuple(unique_topics[:60])) # This is currently a list of tuples; we will render it as a table on the frontend
+    return render_template("partials/first_responders_table.html", most_freq_first_responders=most_freq_first_responders_list)
+
+
 
 
 @app.route("/user_details/<user_name>", methods=["GET"])
