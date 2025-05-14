@@ -9,7 +9,7 @@ from markupsafe import Markup
 from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users
 
 from subject_wise_engagement.data_dicts import get_all_data_dicts
-from subject_wise_engagement.global_functions_1 import get_current_trimester, get_top_10_first_responders
+from subject_wise_engagement.global_functions_1 import get_current_trimester, get_top_10_first_responders, create_weekwise_engagement
 from subject_wise_engagement.execute_query import execute_query_108
 
 from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_overall_engagement, create_stacked_bar_chart_for_course_specific_engagement, create_empty_chart_in_case_of_errors
@@ -21,8 +21,8 @@ oauth = OAuth(app) # OAuth is a way to safely let users login using Google witho
 
 # DATA VARIABLES
 user_actions_dictionaries = get_all_data_dicts()
-id_username_mapping = execute_query_108(query_id=108)
-# id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv")
+# id_username_mapping = execute_query_108(query_id=108)
+id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv")
 
 google = oauth.register( # Then you told OAuth: Hey OAuth
     
@@ -149,25 +149,79 @@ def authorized():
     session['user'] = user_info
     return redirect(url_for('index'))
 
+# @app.route("/<course_name>")
+# def course_page(course_name):
+#     course_name_original = course_name
+#     try:
+#         course_name_original = course_name
+#         course_name = course_name.replace("-", "_").replace(":","_")
+#         top_10_users_chart = generate_chart_for_course_specific_engagement(term="t1-2025", subject=course_name)
+#         top_10_users_chart_html = top_10_users_chart.to_html() # Convert the chart to an HTML string
+
+#         # Now creating the week-wise engagement chart for course_name
+#         user_actions_df = user_actions_dictionaries['t1-2025'][course_name]["user_actions_df"]
+#         weekwise_engagement_chart = create_weekwise_engagement(user_actions_df)
+#         weekwise_engagement_chart_html = weekwise_engagement_chart.to_html()
+
+#         return render_template(
+#             'course_specific_viz.html',
+#             course_name=course_name_original.title().replace("_"," "),
+#             latest_visualizations_html=Markup(top_10_users_chart_html),  # Mark it safe explicitly
+#             weekwise_engagement_chart_html = Markup(weekwise_engagement_chart_html)
+#         )
+#     except Exception as e:
+#         print(f"Inside the except block of /<course_name> for course = {course_name} because of error: {e}")
+#         return render_template(
+#             'course_specific_viz.html',
+#             course_name=course_name_original.title().replace("_"," "),
+#             latest_visualizations_html=Markup(create_empty_chart_in_case_of_errors().to_html()),
+#             weekwise_engagement_chart_html=Markup(create_empty_chart_in_case_of_errors().to_html())
+#         )
+# Completely redesigned course_page route using separate endpoints for each chart
+
 @app.route("/<course_name>")
 def course_page(course_name):
     course_name_original = course_name
     try:
-        course_name_original = course_name
         course_name = course_name.replace("-", "_").replace(":","_")
-        top_10_users_chart = generate_chart_for_course_specific_engagement(term="t1-2025", subject=course_name)
-        top_10_users_chart_html = top_10_users_chart.to_html() # # Convert the chart to an HTML string
         return render_template(
             'course_specific_viz.html',
             course_name=course_name_original.title().replace("_"," "),
-            latest_visualizations_html=Markup(top_10_users_chart_html),  # Mark it safe explicitly
+            course_name_escaped=course_name  # Pass the escaped course name to the template
         )
     except Exception as e:
+        print(f"Error in course_page for course = {course_name}: {e}")
         return render_template(
             'course_specific_viz.html',
             course_name=course_name_original.title().replace("_"," "),
-            latest_visualizations_html=Markup(create_empty_chart_in_case_of_errors().to_html())
+            course_name_escaped=course_name,
+            error=str(e)
         )
+
+# New endpoint that returns only the top users chart
+@app.route("/<course_name>/top_users_chart")
+def top_users_chart(course_name):
+    try:
+        course_name = course_name.replace("-", "_").replace(":","_").lower()
+        top_10_users_chart = generate_chart_for_course_specific_engagement(term="t1-2025", subject=course_name)
+        return top_10_users_chart.to_html()
+    except Exception as e:
+        print(f"Error in top_users_chart for course = {course_name}: {e}")
+        empty_chart = create_empty_chart_in_case_of_errors(message="Could not load top users chart")
+        return empty_chart.to_html()
+
+# New endpoint that returns only the weekwise engagement chart
+@app.route("/<course_name>/weekwise_chart")
+def weekwise_chart(course_name):
+    try:
+        course_name = course_name.replace("-", "_").replace(":","_").lower()
+        user_actions_df = user_actions_dictionaries['t1-2025'][course_name]["user_actions_df"]
+        weekwise_engagement_chart = create_weekwise_engagement(user_actions_df)
+        return weekwise_engagement_chart.to_html()
+    except Exception as e:
+        print(f"Error in weekwise_chart for course = {course_name}: {e}")
+        empty_chart = create_empty_chart_in_case_of_errors(message="Could not load weekly engagement chart")
+        return empty_chart.to_html()
 
 @app.route("/get_most_frequent_first_responders/<course_name>", methods = ["GET"])
 def most_frequent_first_responders(course_name):
@@ -177,6 +231,10 @@ def most_frequent_first_responders(course_name):
     # print(unique_topics[:5])
     most_freq_first_responders_list = get_top_10_first_responders(tuple(unique_topics[:60])) # This is currently a list of tuples; we will render it as a table on the frontend
     return render_template("partials/first_responders_table.html", most_freq_first_responders=most_freq_first_responders_list)
+
+# @app.route("/get_weekwise_engagement_chart/<course_name>", methods=["GET"])
+# def get_weekwise_engagement_chart(course_name):
+#     course_name = course_name.replace("-", "_").replace(":","_").lower()
 
 
 

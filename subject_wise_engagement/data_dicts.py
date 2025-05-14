@@ -7,9 +7,6 @@ def get_all_data_dicts():
     from subject_wise_engagement.global_functions_1 import sanitize_filepath, get_current_trimester, get_previous_trimesters,get_all_course_specific_df, get_overall_engagement_df
     from subject_wise_engagement.fetch_category_IDs_107 import df_map_category_to_id
 
-    # from global_functions_1 import sanitize_filepath, get_current_trimester, get_previous_trimesters,get_all_course_specific_df, get_overall_engagement_df
-    # from fetch_category_IDs_107 import df_map_category_to_id
-
     curr_plus_prev_trimesters = get_previous_trimesters(get_current_trimester())[:2] # The items of this list will act as keys of the dictionary; elements are terms in descending order, like current(t2-2025), previous(t1-2025), t3-2024 and so on
 
     def get_trimester_dates(trimester): # THIS WILL HELP IN SENDING DATES AS PARAMS FOR QUERIES LIKE 103
@@ -38,6 +35,7 @@ def get_all_data_dicts():
                     print("category_name = ", category_name)
                     if category_name not in user_actions_dictionaries[key]:
                         user_actions_dictionaries[key][category_name] = {}
+                        user_actions_dictionaries[key][category_name]["user_actions_df"] = pd.DataFrame() # This will be used to create week-wise engagement graph
                         user_actions_dictionaries[key][category_name]["raw_metrics"] = pd.DataFrame()
                         user_actions_dictionaries[key][category_name]["unnormalized_scores"] = pd.DataFrame()
                         user_actions_dictionaries[key][category_name]["log_normalized_scores"] = pd.DataFrame()
@@ -45,9 +43,10 @@ def get_all_data_dicts():
                     start_date, end_date = get_trimester_dates(term)
                     params = {"category_id": str(category_id), "start_date": start_date, "end_date": end_date}
                     
-                    raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids = get_all_course_specific_df(query_params=tuple(params.items()))
+                    user_actions_df, raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids = get_all_course_specific_df(query_params=tuple(params.items()))
 
                     # if not user_actions_df.empty and len(user_actions_df)>75: # THIS WILL BE IMPLEMENTED LATER AFTER DISCUSSION
+                    user_actions_dictionaries[key][category_name]["user_actions_df"] = user_actions_df
                         
                     user_actions_dictionaries[key][category_name]["raw_metrics"] = raw_metrics_df # So now we have the raw metrics for each category for each term.
 
@@ -86,6 +85,7 @@ def get_all_data_dicts():
             print(f"Error: {exec} for term: {term}")
             error_list.append(term)
             continue
+    
     if error_list: print(error_list)
     return user_actions_dictionaries
 

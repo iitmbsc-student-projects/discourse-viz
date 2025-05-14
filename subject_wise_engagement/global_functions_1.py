@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 from functools import lru_cache
 from subject_wise_engagement.execute_query import execute_query_103, execute_query_102
+import altair as alt
+from datetime import datetime, timedelta
 # from execute_query import execute_query_103, execute_query_102
 
 def sanitize_filepath(name):
@@ -138,7 +140,7 @@ def get_all_course_specific_df(query_params):
     raw_metrics_df = create_raw_metrics_dataframe(user_actions_df)
     unnormalized_scores_df = create_unnormalized_scores_dataframe(raw_metrics_df)
     log_normalized_scores_df = create_log_normalized_scores_dataframe(raw_metrics_df)
-    return raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids
+    return user_actions_df, raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids
 
 # Assign the weights to the relevant columns. This can be changed as per the requirement.
 weights_dict_for_overall_engaagement = { 'likes_given': 0.4, # likes_given is also important
@@ -209,3 +211,114 @@ def get_top_10_first_responders(topic_list):
     sorted_users = sorted(most_frequent_users.items(), key=lambda x: x[1], reverse=True)
     top_10_first_responders = sorted_users[:10] # Note that this is a list of tuples
     return top_10_first_responders
+
+
+def get_trimester_week(date_str):
+    """
+    Given a date string in 'YYYY-MM-DD', returns:
+    (trimester_number, week_in_trimester, week_start_date, week_end_date)
+    
+    Week start and end dates are in format 'dd-mm-yyyy'.
+    """
+    date = datetime.strptime(date_str, "%Y-%m-%d")
+    year = date.year
+
+    # Define trimester start dates
+    t1_start = datetime(year, 1, 1)
+    t2_start = datetime(year, 5, 1)
+    t3_start = datetime(year, 9, 1)
+
+    if date < t2_start:
+        trimester = 1
+        trimester_start = t1_start
+    elif date < t3_start:
+        trimester = 2
+        trimester_start = t2_start
+    else:
+        trimester = 3
+        trimester_start = t3_start
+
+    days_diff = (date - trimester_start).days
+    week_in_trimester = days_diff // 7 + 1  # 1-based week number
+
+    # Calculate week start and end dates
+    week_start = trimester_start + timedelta(weeks=week_in_trimester - 1)
+    week_end = week_start + timedelta(days=6)
+
+    # Format the dates as 'dd-mm-yyyy'
+    week_start_str = week_start.strftime("%d-%m-%Y")
+    week_end_str = week_end.strftime("%d-%m-%Y")
+
+    return f"t{trimester}-w{week_in_trimester};  ({week_start_str}, {week_end_str})"
+
+def create_weekwise_engagement(df):
+    df["created_at"] = df["created_at"].map(lambda x: x.split("T")[0])
+    df["week_number"] = df["created_at"].map(lambda x: get_trimester_week(x))
+
+    action_to_description = {
+    "1": "total likes",
+    "2": "likes_received",
+    "3": "bookmarked_post",
+    "4": "new topics created",
+    "5": "total replies",
+    "6": "received_response",
+    "7": "user_was_mentioned",
+    "9": "user's_post_quoted",
+    "11": "user_edited_post",
+    "12": "user_sent_private_message",
+    "13": "recieved_a_private_message",
+    "15": "topics solved",
+    "16": "user_was_assigned",
+    "17": "linked"
+}
+
+    df["action_name_new"] = df["action_type"].astype(str).map(action_to_description)
+    df2 = df[["week_number", "action_name_new"]]
+
+    # Create a pivot table
+    pivot_table = pd.pivot_table(
+        df2,
+        index="week_number",  # Rows
+        columns="action_name_new",  # Columns
+        aggfunc="size",  # Count occurrences
+        fill_value=0  # Fill missing values with 0
+    )
+    # Remove the specified columns from the pivot table
+    columns_to_be_removed = ["user_edited_post", "likes_received", "linked", "received_response", "user's_post_quoted", "user_was_mentioned", "user_edited_post"]
+    pivot_table = pivot_table.drop(columns=columns_to_be_removed, errors='ignore')
+    pivot_table["total_score"] = pivot_table.apply(lambda row: sum(row[col] for col in pivot_table.columns), axis=1)
+
+    # Reset the index of the pivot_table to make "week_number" a column
+    pivot_table_reset = pivot_table.reset_index()
+
+    # Sort by total_score in descending order
+    pivot_table_reset = pivot_table_reset.sort_values(by="total_score", ascending=False)
+
+    # Combine all metric details into a single string for display in the tooltip
+    pivot_table_reset["metrics_details"] = pivot_table_reset.apply(
+        lambda row: "\n".join([f"{col}:{row[col]} | " for col in pivot_table.columns if col != "total_score"]),
+        axis=1
+    )
+
+    # Create the heatmap
+    heatmap = alt.Chart(pivot_table_reset).mark_rect().encode(
+        x=alt.X(
+            'week_number:O', 
+            title='Week Number (start:end)', 
+            sort=pivot_table_reset["week_number"].tolist(),
+            axis=alt.Axis(labelAngle=45)  # Set label angle here
+        ),
+        y=alt.Y('total_score:Q', title='Total Score'),
+        color=alt.Color('total_score:Q', title='Total Score', scale=alt.Scale(scheme='greens')),
+        tooltip=[
+            alt.Tooltip('week_number:O', title='Week Number'),
+            alt.Tooltip('total_score:Q', title='Total Score'),
+            alt.Tooltip('metrics_details:N', title='Metrics Details')
+        ]
+    ).properties(
+        width=700,
+        # height=400,
+        title="Heatmap of Total Score by Week Number"
+    )
+
+    return heatmap
