@@ -21,12 +21,12 @@ oauth = OAuth(app) # OAuth is a way to safely let users login using Google witho
 
 # DATA VARIABLES
 user_actions_dictionaries = get_all_data_dicts()
-id_username_mapping = execute_query_108(query_id=108)
-# id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv")
+# id_username_mapping = execute_query_108(query_id=108)
+id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv")
 
 google = oauth.register( # Then you told OAuth: Hey OAuth
     
-    name='google', # register Google as a login provider, and here’s my
+    name='google', # register Google as a login provider, and here’s my...
     client_id= os.environ.get("GOOGLE_AUTH_CLIENT_ID"), # client_id
     client_secret= os.environ.get("GOOGLE_AUTH_CLIENT_SECRET"), # a secret password only your app and Google know
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration', # Google OpenID configuration URL (this tells your app where to send users to login)
