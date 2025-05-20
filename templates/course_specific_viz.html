@@ -58,6 +58,13 @@
             <!-- Will be populated after form submission -->
         </div>
     </div>
+    <!-- Most Trending Topics section -->
+    <div class="chart-section">
+        <h2>Most Trending Topics (in descending order of engagement)</h2>
+        <div class="chart-container" id="most-trending-topics">
+            <p>Loading trending topics... this may take up to a minute.</p>
+        </div>
+    </div>
 
 
 </div>
@@ -194,6 +201,18 @@
         document.getElementById("weekwise-iframe").addEventListener("load", function () {
             console.log("Weekwise chart loaded successfully");
         });
+
+        // Trending topics fetch
+        fetch(`/most_trending_topics/${courseName}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById("most-trending-topics").innerHTML = html;
+            })
+            .catch(err => {
+                document.getElementById("most-trending-topics").innerHTML =
+                    "<p style='color: red;'>Failed to load trending topics.</p>";
+                console.error(err);
+            });
     });
 </script>
 {% endif %}

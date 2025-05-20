@@ -205,7 +205,7 @@ def get_top_10_first_responders(topic_list):
                     most_frequent_users[username] = most_frequent_users.get(username,0)+1 # Increment the frequqncy of first-responder
             time.sleep(0.9)
         except Exception as e:
-            print(f"Encountered an ERROR when trying to find details for the topic {t}")
+            print(f"Encountered an ERROR {e} when trying to find details for the topic {t}")
             continue
 
     sorted_users = sorted(most_frequent_users.items(), key=lambda x: x[1], reverse=True)

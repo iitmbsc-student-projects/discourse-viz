@@ -71,7 +71,7 @@ def execute_query_103(query_id, query_params=None): # for course-specific user a
 
 
         iteration_count += 1  # Increment iteration count for pagination
-        # if iteration_count>2: break # REMOVE
+        if iteration_count>1: break # REMOVE
         time.sleep(2)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
@@ -301,7 +301,7 @@ def execute_query_102(query_id, query_params=None): # overall discourse engageme
             break
 
         iteration_count += 1  # Increment iteration count for pagination
-        if iteration_count>2: break
+        if iteration_count>1: break
         time.sleep(2)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame

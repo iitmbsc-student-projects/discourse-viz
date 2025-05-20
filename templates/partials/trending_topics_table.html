@@ -1,0 +1,28 @@
+{% if trending_scores %}
+    <table style="width:100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <!-- <th style="border: 1px solid #ddd; padding: 8px;">Score</th> -->
+                <!-- <th style="border: 1px solid #ddd; padding: 8px;">Topic ID</th> -->
+                <th style="border: 1px solid #ddd; padding: 8px;">Topic Link</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Solved?</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">views</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">like_count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for score, topic_id, topic_url, topic_title, accepted_answer, views, like_count in trending_scores %}
+            <tr>
+                <!-- <td style="border: 1px solid #ddd; padding: 8px;">{{ "%.4f"|format(score) }}</td> -->
+                <!-- <td style="border: 1px solid #ddd; padding: 8px;">{{ topic_id }}</td> -->
+                <td style="border: 1px solid #ddd; padding: 8px;"><a href="{{ topic_url }}" target="_blank">{{ topic_title }}</a></td>
+                <td style="border: 1px solid #ddd; padding: 8px;">{{ accepted_answer }}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">{{ views }}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">{{ like_count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No trending topics found.</p>
+{% endif %}

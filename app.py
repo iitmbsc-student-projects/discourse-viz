@@ -6,7 +6,7 @@ from functools import lru_cache
 from markupsafe import Markup
 
 # Imports from other files
-from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users
+from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users, fetch_recent_topics, compute_trending_scores
 
 from subject_wise_engagement.data_dicts import get_all_data_dicts
 from subject_wise_engagement.global_functions_1 import get_current_trimester, get_top_10_first_responders, create_weekwise_engagement
@@ -149,36 +149,6 @@ def authorized():
     session['user'] = user_info
     return redirect(url_for('index'))
 
-# @app.route("/<course_name>")
-# def course_page(course_name):
-#     course_name_original = course_name
-#     try:
-#         course_name_original = course_name
-#         course_name = course_name.replace("-", "_").replace(":","_")
-#         top_10_users_chart = generate_chart_for_course_specific_engagement(term="t1-2025", subject=course_name)
-#         top_10_users_chart_html = top_10_users_chart.to_html() # Convert the chart to an HTML string
-
-#         # Now creating the week-wise engagement chart for course_name
-#         user_actions_df = user_actions_dictionaries['t1-2025'][course_name]["user_actions_df"]
-#         weekwise_engagement_chart = create_weekwise_engagement(user_actions_df)
-#         weekwise_engagement_chart_html = weekwise_engagement_chart.to_html()
-
-#         return render_template(
-#             'course_specific_viz.html',
-#             course_name=course_name_original.title().replace("_"," "),
-#             latest_visualizations_html=Markup(top_10_users_chart_html),  # Mark it safe explicitly
-#             weekwise_engagement_chart_html = Markup(weekwise_engagement_chart_html)
-#         )
-#     except Exception as e:
-#         print(f"Inside the except block of /<course_name> for course = {course_name} because of error: {e}")
-#         return render_template(
-#             'course_specific_viz.html',
-#             course_name=course_name_original.title().replace("_"," "),
-#             latest_visualizations_html=Markup(create_empty_chart_in_case_of_errors().to_html()),
-#             weekwise_engagement_chart_html=Markup(create_empty_chart_in_case_of_errors().to_html())
-#         )
-# Completely redesigned course_page route using separate endpoints for each chart
-
 @app.route("/<course_name>")
 def course_page(course_name):
     course_name_original = course_name
@@ -228,16 +198,8 @@ def most_frequent_first_responders(course_name):
     course_name = course_name.replace("-", "_").replace(":","_").lower()
     # Finding most-frequent first-responders
     unique_topics = user_actions_dictionaries["t1-2025"][course_name]["unique_topic_ids"]
-    # print(unique_topics[:5])
     most_freq_first_responders_list = get_top_10_first_responders(tuple(unique_topics[:60])) # This is currently a list of tuples; we will render it as a table on the frontend
     return render_template("partials/first_responders_table.html", most_freq_first_responders=most_freq_first_responders_list)
-
-# @app.route("/get_weekwise_engagement_chart/<course_name>", methods=["GET"])
-# def get_weekwise_engagement_chart(course_name):
-#     course_name = course_name.replace("-", "_").replace(":","_").lower()
-
-
-
 
 @app.route("/user_details/<user_name>", methods=["GET"])
 def get_user_details(user_name):
@@ -270,7 +232,13 @@ def specific_users_stat(course_name):
 def search_user():
     return render_template('user.html')
 
-
+@app.route("/most_trending_topics/<course_name>", methods = ["GET"])
+def most_trending_topics(course_name):
+    course_name = course_name.replace("-", "_").replace(":", "_").lower()
+    trending_topics = fetch_recent_topics() # ADD the args later
+    trending_scores = compute_trending_scores(trending_topics)
+    # print(f"Trending scores = {trending_scores}")
+    return render_template("partials/trending_topics_table.html", trending_scores=trending_scores)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', 
