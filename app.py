@@ -20,8 +20,8 @@ app.secret_key = os.environ.get("SECRET_KEY")  # secret key to secure cookies an
 oauth = OAuth(app) # OAuth is a way to safely let users login using Google without handling their passwords yourself
 
 # DATA VARIABLES
-user_actions_dictionaries = get_all_data_dicts()
-# id_username_mapping = execute_query_108(query_id=108)
+# user_actions_dictionaries = get_all_data_dicts()
+id_username_mapping = execute_query_108(query_id=108)
 id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv")
 
 google = oauth.register( # Then you told OAuth: Hey OAuth
