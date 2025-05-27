@@ -132,7 +132,8 @@ def create_stacked_bar_chart(raw_metrics, subject):
         return chart
 
 @lru_cache(maxsize=None)
-def fetch_recent_topics(today_str = datetime.today().strftime("%d-%m-%Y"), slug = "stats2-kb", id=24):
+def fetch_recent_topics(slug = "stats2-kb", id=24):
+    today_str = datetime.today().strftime("%d-%m-%Y") # Today's date in string format dd-mm-yyyy
     page=0
     last_10_days_topic_details = {"id":[]}
     days_limit = 7

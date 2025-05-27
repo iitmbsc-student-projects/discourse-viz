@@ -11,6 +11,7 @@ from user_summary_functions import get_user_summary, get_basic_metrics, get_top_
 from subject_wise_engagement.data_dicts import get_all_data_dicts
 from subject_wise_engagement.global_functions_1 import get_current_trimester, get_top_10_first_responders, create_weekwise_engagement
 from subject_wise_engagement.execute_query import execute_query_108
+from subject_wise_engagement.fetch_category_IDs_107 import df_map_category_to_id
 
 from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_overall_engagement, create_stacked_bar_chart_for_course_specific_engagement, create_empty_chart_in_case_of_errors
 
@@ -21,8 +22,8 @@ oauth = OAuth(app) # OAuth is a way to safely let users login using Google witho
 
 # DATA VARIABLES
 user_actions_dictionaries = get_all_data_dicts()
-id_username_mapping = execute_query_108(query_id=108)
-# id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv")
+# id_username_mapping = execute_query_108(query_id=108)
+id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv")
 
 google = oauth.register( # Then you told OAuth: Hey OAuth
     
@@ -213,7 +214,7 @@ def get_user_details(user_name):
     })
 
 @app.route("/<course_name>/get_specific_users_stat", methods=["POST"])
-def specific_users_stat(course_name):
+def specific_users_stat(course_name): # Returns a chart showing activity of a set of users
     # try:
         course_name = course_name.replace("-", "_").replace(":", "_").lower()
         user_list = request.form.get("user_list")
@@ -234,10 +235,12 @@ def search_user():
 
 @app.route("/most_trending_topics/<course_name>", methods = ["GET"])
 def most_trending_topics(course_name):
-    course_name = course_name.replace("-", "_").replace(":", "_").lower()
-    trending_topics = fetch_recent_topics() # ADD the args later
+    print(f"Course name for finding trending topics is:  {course_name}")
+    course_name = course_name.replace("-", " ")
+    print(f"NEW Course name for finding trending topics is:  {course_name}")
+    slug, course_id = df_map_category_to_id.loc[df_map_category_to_id["name"]==course_name, ["slug", "category_id"]].iloc[0]
+    trending_topics = fetch_recent_topics(slug=slug, id=course_id) # ADD the args later
     trending_scores = compute_trending_scores(trending_topics)
-    # print(f"Trending scores = {trending_scores}")
     return render_template("partials/trending_topics_table.html", trending_scores=trending_scores)
 
 if __name__ == '__main__':

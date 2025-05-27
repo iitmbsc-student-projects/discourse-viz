@@ -8,3 +8,4 @@ TP/*
 data/*
 temp.html
 TRASH/*
+*pycache*

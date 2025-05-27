@@ -32,3 +32,6 @@ electronic_product_design"""
 irrelevant_categories = irrelevant_categories.replace("\n",",").split(",")
 # Remove rows where "name" column doesn't have any of the irrelevant categories
 df_map_category_to_id = df_map_category_to_id[~df_map_category_to_id["name"].isin(irrelevant_categories)]
+
+if __name__ == "__main__":
+    print(df_map_category_to_id.head())
