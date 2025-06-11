@@ -131,7 +131,7 @@ def create_stacked_bar_chart(raw_metrics, subject):
 
         return chart
 
-@lru_cache(maxsize=None)
+# @lru_cache(maxsize=None)
 def fetch_recent_topics(slug = "stats2-kb", id=24):
     today_str = datetime.today().strftime("%d-%m-%Y") # Today's date in string format dd-mm-yyyy
     page=0
@@ -182,7 +182,7 @@ def fetch_recent_topics(slug = "stats2-kb", id=24):
 
     return last_10_days_topic_details
 
-def compute_trending_scores(data: Dict) -> List[tuple[float, int]]:
+def compute_trending_scores(data: Dict):
     weights = {
         "views": 0.15,
         "posts_count": 0.5,

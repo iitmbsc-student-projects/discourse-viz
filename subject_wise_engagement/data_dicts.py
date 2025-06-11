@@ -26,8 +26,6 @@ def get_all_data_dicts():
         count=0
         try:
             for row in df_map_category_to_id.itertuples():
-                # count+=1
-                # if count>1: break
                 try:
                     category_id = row.category_id
                     if not category_id==53: continue
@@ -40,7 +38,9 @@ def get_all_data_dicts():
                         user_actions_dictionaries[key][category_name]["unnormalized_scores"] = pd.DataFrame()
                         user_actions_dictionaries[key][category_name]["log_normalized_scores"] = pd.DataFrame()
                         user_actions_dictionaries[key][category_name]["unique_topic_ids"] = []
+                    
                     start_date, end_date = get_trimester_dates(term)
+                    end_date = "27-05-2025" # REMOVE. THIS IS ONLY FOR DATA REFRESHMENT TESTING
                     params = {"category_id": str(category_id), "start_date": start_date, "end_date": end_date}
                     
                     user_actions_df, raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids = get_all_course_specific_df(query_params=tuple(params.items()))
@@ -68,7 +68,7 @@ def get_all_data_dicts():
 
     for term in curr_plus_prev_trimesters:
         start_date, end_date = get_trimester_dates(term)
-        params = {"start_date": start_date, "end_date": end_date}
+        params = {"start_date": start_date, "end_date": "27-05-2025"} # REMOVE. THIS IS ONLY FOR DATA REFRESHMENT TESTING
         
         user_actions_dictionaries[term]["overall"] = {
             "raw_metrics": pd.DataFrame(),

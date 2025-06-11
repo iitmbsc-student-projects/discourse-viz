@@ -1,4 +1,4 @@
-import re, os
+import re, os, time, requests
 from datetime import date
 import pandas as pd
 import numpy as np
@@ -66,7 +66,8 @@ def create_raw_metrics_dataframe(df):
     subject_dataframe = df.copy()
     subject_dataframe['action_type'] = subject_dataframe['action_type'].astype(str)
     subject_dataframe['action_name'] = subject_dataframe['action_type'].map(action_to_description)
-    subject_dataframe = pd.crosstab(df["acting_username"], subject_dataframe["action_name"]) # Creating PIVOT table
+    subject_dataframe.to_csv("TRASH/data/subject_dataframe.csv", index=False) # REMOVE THIS LINE AFTER TESTING
+    subject_dataframe = pd.crosstab(subject_dataframe["acting_username"], subject_dataframe["action_name"]) # Creating PIVOT table
 
     columns_to_be_dropped = ['linked','received_response', "user's_post_quoted",
         'user_edited_post', 'user_was_mentioned'] # dropping columns which are not required for analysis
@@ -118,7 +119,7 @@ def create_log_normalized_scores_dataframe(df):
         (log_normalized_dataframe["initial_score"] - log_normalized_dataframe["initial_score"].mean()) / log_normalized_dataframe["initial_score"].std(),2)
     return log_normalized_dataframe.sort_values(by="z_score",ascending=False)
 
-@lru_cache(maxsize=None)
+# @lru_cache(maxsize=None)
 def get_all_course_specific_df(query_params):
     """
     Calls the query_103 using parameters {category_id, start_date, end_date} to get user_actions_df which is then used to create and return 3 dataframes:
@@ -133,7 +134,6 @@ def get_all_course_specific_df(query_params):
     user_actions_df = execute_query_103(103, query_params)
     # user_actions_df.info()
     unique_topic_ids = user_actions_df[user_actions_df["target_post_id"] == -1]["target_topic_id"].unique()
-    # print(f"We got the following unique topic-is for the cat_id = {query_params['category_id']}\n\n {unique_topic_ids}\n*")
     if user_actions_df.empty:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), [] # Return 3 empty DFs + one empty list
     
@@ -170,7 +170,7 @@ def create_log_normalized_scores_dataframe_for_all_users(df):
     log_normalized_dataframe["z_score"] = round((log_normalized_dataframe["initial_score"] - log_normalized_dataframe["initial_score"].mean()) / log_normalized_dataframe["initial_score"].std(),2)
     return log_normalized_dataframe.sort_values(by="z_score",ascending=False)
 
-@lru_cache(maxsize=None)
+# @lru_cache(maxsize=None)
 def get_overall_engagement_df(query_params):
     query_params = dict(query_params)
     print(f'Executing query_102 (for all users data) for dates={query_params["start_date"]}; {query_params["end_date"]}') # REMOVE
@@ -182,8 +182,8 @@ def get_overall_engagement_df(query_params):
     return raw_metrics_df, unnormalized_scores_dataframe, log_normalized_scores_dataframe
 
 
-import time, requests
-@lru_cache(maxsize=None)
+
+# @lru_cache(maxsize=None)
 def get_top_10_first_responders(topic_list):
     headers = {
                 "Api-Key": os.environ.get('API_KEY'),

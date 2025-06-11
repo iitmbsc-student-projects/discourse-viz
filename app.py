@@ -4,13 +4,18 @@ import os, json, time
 import pandas as pd
 from functools import lru_cache
 from markupsafe import Markup
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
 
 # Imports from other files
 from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users, fetch_recent_topics, compute_trending_scores
 
 from subject_wise_engagement.data_dicts import get_all_data_dicts
-from subject_wise_engagement.global_functions_1 import get_current_trimester, get_top_10_first_responders, create_weekwise_engagement
-from subject_wise_engagement.execute_query import execute_query_108
+
+from subject_wise_engagement.global_functions_1 import get_current_trimester, get_top_10_first_responders, create_weekwise_engagement, get_previous_trimesters, sanitize_filepath, create_raw_metrics_dataframe, create_unnormalized_scores_dataframe, create_log_normalized_scores_dataframe, weights_dict_for_overall_engaagement, create_log_normalized_scores_dataframe_for_all_users, create_unnormalized_scores_dataframe_for_all_users
+
+from subject_wise_engagement.execute_query import execute_query_108, execute_query_103, execute_query_102
+
 from subject_wise_engagement.fetch_category_IDs_107 import df_map_category_to_id
 
 from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_overall_engagement, create_stacked_bar_chart_for_course_specific_engagement, create_empty_chart_in_case_of_errors
@@ -19,11 +24,111 @@ from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")  # secret key to secure cookies and session data.
 oauth = OAuth(app) # OAuth is a way to safely let users login using Google without handling their passwords yourself
+last_refresh_date = "20-05-2025" # For testing purposes
+
+
+
+# DATA LOADER FUNCTIONS
+def load_user_actions_dictionaries():
+    from subject_wise_engagement.data_dicts import get_all_data_dicts
+    return get_all_data_dicts()
+
+def load_df_map_category_to_id():
+    from subject_wise_engagement.fetch_category_IDs_107 import df_map_category_to_id
+    return df_map_category_to_id
+
+def load_id_username_mapping():
+    from subject_wise_engagement.execute_query import execute_query_108
+    df = pd.read_csv("TRASH/data/id_username_mapping.csv")
+    return df
+    return execute_query_108(query_id=108)
 
 # DATA VARIABLES
-user_actions_dictionaries = get_all_data_dicts()
-# id_username_mapping = execute_query_108(query_id=108)
-id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv")
+def get_all_data():
+    global user_actions_dictionaries, df_map_category_to_id, id_username_mapping
+    user_actions_dictionaries = load_user_actions_dictionaries()
+    df_map_category_to_id = load_df_map_category_to_id()
+    id_username_mapping = load_id_username_mapping()
+    # id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE
+
+def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
+    global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
+    print("INSIDE REFRESH FUNCTION")
+    today = datetime.now().strftime("%d-%m-%Y")
+    print(f"Today's date is: {today}")
+    trimester_corresponding_to_today = get_current_trimester()
+    print(f"Trimester corresponding to today is: {trimester_corresponding_to_today}")
+    trimester_data_to_be_removed = get_previous_trimesters(trimester_corresponding_to_today)[2] # For example, if today's trimester = "t2-2025", then remove any data corresponding to "t3-2024"
+    print(f"Trimester data to be removed is: {trimester_data_to_be_removed}")
+    
+    user_actions_dictionaries.pop(trimester_data_to_be_removed, None) # Remove the data, without raising eny errors
+    print("User actions dictionaries keys: ", user_actions_dictionaries.keys())
+
+    # Creating new data for each course
+    for row in df_map_category_to_id.itertuples():
+        category_id = row.category_id
+        if not category_id==53: 
+            continue # REMOVE IN FINAL DEPLOYMENT
+        category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
+        if category_name not in user_actions_dictionaries[trimester_corresponding_to_today]:
+            print(f"{category_name} not found in user_actions_dictionaries for trimester {trimester_corresponding_to_today}")
+            continue
+        query_params_for_103 = {"category_id": str(category_id), "start_date": last_refresh_date, "end_date": today}
+        print(f"Now we will execute query 103 for {category_name} with params: {query_params_for_103}")
+        latest_user_actions_df = execute_query_103(103, query_params=query_params_for_103) # This is the data between last_refresh_date and today
+        print(f"Latest user actions dataframe for {category_name} has {len(latest_user_actions_df)} rows")
+        # latest_user_actions_df.to_csv(f"TRASH/data/{category_name}_latest_user_actions_df.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+        if not latest_user_actions_df.empty: # Modify existing data iff there is some change since last update
+
+            # Now append this latest user_actions_df to the existing user_actions_df, and DROP the duplicate rows
+            existing_user_actions_df = user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"]
+            existing_user_actions_df.to_csv(f"TRASH/data/{category_name}_existing_user_actions_df.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+            new_user_actions_df = pd.concat([existing_user_actions_df, latest_user_actions_df]).drop_duplicates()
+            new_user_actions_df.to_csv(f"TRASH/data/{category_name}_new_user_actions_df.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+            user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"] = new_user_actions_df
+
+            # Now calculate the scores dataframe using new_user_actions_df
+            new_raw_metrics_dataframe = create_raw_metrics_dataframe(new_user_actions_df)
+            new_unnormalized_scores_df = create_unnormalized_scores_dataframe(new_raw_metrics_dataframe)
+            new_log_normalized_scores_df = create_log_normalized_scores_dataframe(new_raw_metrics_dataframe)
+
+            # Now assign the newly created dataframes to the original user_actions_dictionaries
+            user_actions_dictionaries[trimester_corresponding_to_today][category_name]["raw_metrics"] = new_raw_metrics_dataframe
+            user_actions_dictionaries[trimester_corresponding_to_today][category_name]["unnormalized_scores"] = new_unnormalized_scores_df
+            user_actions_dictionaries[trimester_corresponding_to_today][category_name]["log_normalized_scores"] = new_log_normalized_scores_df
+
+    # Updating data for overall engagement
+    query_params_for_102 = {"start_date": last_refresh_date, "end_date": today}
+    latest_raw_metrics_for_overall_engagement = execute_query_102(102, query_params = query_params_for_102)
+    existing_raw_metrics_for_overall_engagement = user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["raw_metrics"]
+    # existing_raw_metrics_for_overall_engagement.to_csv(f"TRASH/data/old_raw_metrics_for_overall_engagement.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+
+    # Concatenate the latest raw metrics with the existing raw metrics, and drop duplicates
+    new_raw_metrics_for_overall_engagement = pd.concat([latest_raw_metrics_for_overall_engagement, existing_raw_metrics_for_overall_engagement]).drop_duplicates()
+    # new_raw_metrics_for_overall_engagement.to_csv(f"TRASH/data/new_raw_metrics_for_overall_engagement_wo_groupby.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+    new_raw_metrics_for_overall_engagement = new_raw_metrics_for_overall_engagement.groupby("user_id", as_index=False).sum() # Group by user_id and sum all other metrics for each user
+    # new_raw_metrics_for_overall_engagement.to_csv(f"TRASH/data/new_raw_metrics_for_overall_engagement_with_groupby.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+
+    new_raw_metrics_for_overall_engagement = new_raw_metrics_for_overall_engagement[["user_id"] + list(weights_dict_for_overall_engaagement.keys())]
+    # new_raw_metrics_for_overall_engagement.to_csv(f"TRASH/data/new_raw_metrics_for_overall_engagement.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+
+
+    new_unnormalized_scores_dataframe_all_users, new_log_normalized_scores_dataframe_all_users = create_unnormalized_scores_dataframe_for_all_users(new_raw_metrics_for_overall_engagement), create_log_normalized_scores_dataframe_for_all_users(new_raw_metrics_for_overall_engagement)
+    # new_unnormalized_scores_dataframe_all_users.to_csv(f"TRASH/data/new_unnormalized_scores_dataframe_all_users.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+    # new_log_normalized_scores_dataframe_all_users.to_csv(f"TRASH/data/new_log_normalized_scores_dataframe_all_users.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+
+    # Final assignment for all_users_engagement
+    user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["raw_metrics"] = new_raw_metrics_for_overall_engagement
+    user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["unnormalized_scores"] = new_unnormalized_scores_dataframe_all_users
+    user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["log_normalized_scores"] = new_log_normalized_scores_dataframe_all_users
+
+    last_refresh_date = today # Update the last refresh date to today
+    print(f"Data refreshed successfully for {trimester_corresponding_to_today} trimester. Last refresh date is now set to {last_refresh_date}.")
+
+
+
+
+
 
 google = oauth.register( # Then you told OAuth: Hey OAuth
     
@@ -51,8 +156,8 @@ def find_latest_chart(dir_list):
     latest_chart = f"most_active_users_{term_list[0]}_{year_list[-1]}.html"
     return latest_chart
 
-@lru_cache(maxsize=None)
-def generate_chart_for_overall_engagement(term):
+# @lru_cache(maxsize=None)
+def generate_chart_for_overall_engagement(term): # can add a cache to this function, but it is not necessary because the calculations  are already fast
     unnormalized_df = user_actions_dictionaries[term]["overall"]["unnormalized_scores"]
     unnormalized_df = unnormalized_df[unnormalized_df["user_id"]>0]
     top_10_users = pd.DataFrame(unnormalized_df.head(10))
@@ -61,7 +166,7 @@ def generate_chart_for_overall_engagement(term):
     chart = create_stacked_bar_chart_for_overall_engagement(top_10_users, term=term)
     return chart
 
-@lru_cache(maxsize=None)
+# @lru_cache(maxsize=None)
 def get_users_engagement_chart(course, user_list, term="t1-2025"):
     user_list = [name.lower().strip() for name in user_list]
     relevant_df = user_actions_dictionaries[term][course]["unnormalized_scores"]
@@ -72,7 +177,7 @@ def get_users_engagement_chart(course, user_list, term="t1-2025"):
     else:
         return create_empty_chart_in_case_of_errors(message="None of the users from the list was found, please provide a new set of users.")
 
-@lru_cache(maxsize=None)
+# @lru_cache(maxsize=None)
 def generate_chart_for_course_specific_engagement(term, subject):
     print("SUBJECT = ", subject, "TERM = ",term)
     # print(f"KEYS = {user_actions_dictionaries[term].keys()}")
@@ -244,6 +349,16 @@ def most_trending_topics(course_name):
     return render_template("partials/trending_topics_table.html", trending_scores=trending_scores)
 
 if __name__ == '__main__':
+    # Initial load
+    get_all_data()
+
+    # Schedule daily refresh
+    scheduler = BackgroundScheduler()
+    current_hour, current_minute = datetime.now().hour, datetime.now().minute # REMOVE THIS IN FINAL DEPLOYMENT
+    print(f"Current hour: {current_hour}, Current minute: {current_minute}") # REMOVE THIS IN FINAL DEPLOYMENT
+    scheduler.add_job(refresh_all_data, 'cron', hour=current_hour, minute=current_minute+1)
+    scheduler.start()
+
     app.run(host='0.0.0.0', 
             port=5000, 
             debug=True, 
