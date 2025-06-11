@@ -159,7 +159,8 @@
         <select id="chart-select" name="chart" onchange="loadChart()">
             <option value="">Select a chart</option>
             {% for chart in overall_discourse_charts %}
-            <option value="{{ chart }}" {% if latest_term==chart %}selected{% endif %}>
+            <option value="{{ chart }}" 
+                {% if latest_term==chart or (not latest_term and loop.first) %}selected{% endif %}>
                 {{ chart.replace('_', ' ').upper() }}
             </option>
             {% endfor %}
@@ -177,37 +178,83 @@
 </div>
 
 <script>
-function loadChart() {
+    function loadChart() {
     const chartSelect = document.getElementById('chart-select');
-    const selectedChart = chartSelect.value;
+    let selectedChart = chartSelect.value;
+    
+    // If no chart is selected, select the first available option
+    if (!selectedChart && chartSelect.options.length > 1) {
+        chartSelect.selectedIndex = 1; // Skip the "Select a chart" option
+        selectedChart = chartSelect.value;
+    }
+    
+    console.log('Loading chart:', selectedChart);
 
     if (selectedChart) {
         fetch(`/get_chart?chart=${selectedChart}`)
             .then(response => response.text())
             .then(html => {
                 const chartContainer = document.getElementById('chart-container');
-                
+
                 // Clear the container first
                 chartContainer.innerHTML = html;
 
-                // Execute all <script> tags manually
+                // Execute external scripts first, then inline scripts
                 const scripts = chartContainer.querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
+                const externalScripts = [];
+                const inlineScripts = [];
 
-                    if (oldScript.src) {
-                        // If script has a src (external script), copy it
-                        newScript.src = oldScript.src;
-                        newScript.async = false; // Keep execution order
+                // Separate external and inline scripts
+                scripts.forEach(script => {
+                    if (script.src) {
+                        externalScripts.push(script);
                     } else {
-                        // If inline script, copy the inner text
-                        newScript.textContent = oldScript.textContent;
+                        inlineScripts.push(script);
                     }
-
-                    // Replace the old script with the new one
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
                 });
 
+                // Load external scripts first
+                let loadedScripts = 0;
+                const totalExternalScripts = externalScripts.length;
+
+                function executeInlineScripts() {
+                    // Execute inline scripts after external scripts are loaded
+                    inlineScripts.forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = oldScript.textContent;
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+                }
+
+                if (totalExternalScripts === 0) {
+                    // No external scripts, execute inline scripts immediately
+                    executeInlineScripts();
+                } else {
+                    // Load external scripts first
+                    externalScripts.forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        newScript.src = oldScript.src;
+                        newScript.async = false;
+                        
+                        newScript.onload = () => {
+                            loadedScripts++;
+                            if (loadedScripts === totalExternalScripts) {
+                                // All external scripts loaded, now execute inline scripts
+                                executeInlineScripts();
+                            }
+                        };
+                        
+                        newScript.onerror = () => {
+                            console.error('Failed to load script:', oldScript.src);
+                            loadedScripts++;
+                            if (loadedScripts === totalExternalScripts) {
+                                executeInlineScripts();
+                            }
+                        };
+                        
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+                }
             })
             .catch(error => {
                 console.error('Error loading chart:', error);
@@ -217,9 +264,8 @@ function loadChart() {
         document.getElementById('chart-container').innerHTML = '<h3>Please select a chart.</h3>';
     }
 }
-
-// Load the default chart on page load
-window.onload = loadChart;
+    // Load the default chart on page load
+    window.onload = loadChart;
 
 </script>
 
