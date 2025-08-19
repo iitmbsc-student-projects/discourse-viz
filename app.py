@@ -1,11 +1,11 @@
 from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify
 from authlib.integrations.flask_client import OAuth
 import os, json, time
-import pandas as pd
-from functools import lru_cache
-from markupsafe import Markup
-from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime
+import pandas as pd 
+from functools import lru_cache # This is used to cache the results of the functions
+from markupsafe import Markup # This is used to safely render HTML content
+from apscheduler.schedulers.background import BackgroundScheduler # This is used to schedule the daily refresh of the data
+from datetime import datetime # This is used to get the current date and time
 
 # Imports from other files
 from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users, fetch_recent_topics, compute_trending_scores
@@ -24,7 +24,7 @@ from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")  # secret key to secure cookies and session data.
 oauth = OAuth(app) # OAuth is a way to safely let users login using Google without handling their passwords yourself
-last_refresh_date = "20-05-2025" # For testing purposes
+last_refresh_date = "20-05-2025" # For testing purposes; REMOVE IN FINAL DEPLOYMENT
 
 
 
@@ -39,17 +39,17 @@ def load_df_map_category_to_id():
 
 def load_id_username_mapping():
     from subject_wise_engagement.execute_query import execute_query_108
-    df = pd.read_csv("TRASH/data/id_username_mapping.csv")
+    df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT
+    # df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
     return df
-    return execute_query_108(query_id=108)
 
 # DATA VARIABLES
 def get_all_data():
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping
     user_actions_dictionaries = load_user_actions_dictionaries()
     df_map_category_to_id = load_df_map_category_to_id()
-    id_username_mapping = load_id_username_mapping()
-    # id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE
+    # id_username_mapping = load_id_username_mapping()
+    id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE
 
 def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
@@ -77,14 +77,13 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
         print(f"Now we will execute query 103 for {category_name} with params: {query_params_for_103}")
         latest_user_actions_df = execute_query_103(103, query_params=query_params_for_103) # This is the data between last_refresh_date and today
         print(f"Latest user actions dataframe for {category_name} has {len(latest_user_actions_df)} rows")
-        # latest_user_actions_df.to_csv(f"TRASH/data/{category_name}_latest_user_actions_df.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
         if not latest_user_actions_df.empty: # Modify existing data iff there is some change since last update
 
             # Now append this latest user_actions_df to the existing user_actions_df, and DROP the duplicate rows
             existing_user_actions_df = user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"]
-            existing_user_actions_df.to_csv(f"TRASH/data/{category_name}_existing_user_actions_df.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+            # existing_user_actions_df.to_csv(f"TRASH/data/{category_name}_existing_user_actions_df.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
             new_user_actions_df = pd.concat([existing_user_actions_df, latest_user_actions_df]).drop_duplicates()
-            new_user_actions_df.to_csv(f"TRASH/data/{category_name}_new_user_actions_df.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
+            # new_user_actions_df.to_csv(f"TRASH/data/{category_name}_new_user_actions_df.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"] = new_user_actions_df
 
             # Now calculate the scores dataframe using new_user_actions_df
@@ -149,13 +148,6 @@ diploma_data_science_courses.sort()
 diploma_programming_courses.sort()
 foundation_courses.sort()
 
-def find_latest_chart(dir_list):
-    term_list = [k.split("_")[3] for k in dir_list]
-    year_list = [k.split("_")[-1].split(".")[0] for k in dir_list]
-    term_list.sort(), year_list.sort()
-    latest_chart = f"most_active_users_{term_list[0]}_{year_list[-1]}.html"
-    return latest_chart
-
 # @lru_cache(maxsize=None)
 def generate_chart_for_overall_engagement(term): # can add a cache to this function, but it is not necessary because the calculations  are already fast
     unnormalized_df = user_actions_dictionaries[term]["overall"]["unnormalized_scores"]
@@ -178,7 +170,7 @@ def get_users_engagement_chart(course, user_list, term="t1-2025"):
         return create_empty_chart_in_case_of_errors(message="None of the users from the list was found, please provide a new set of users.")
 
 # @lru_cache(maxsize=None)
-def generate_chart_for_course_specific_engagement(term, subject):
+def get_top_10_users_chart(term, subject):
     print("SUBJECT = ", subject, "TERM = ",term)
     # print(f"KEYS = {user_actions_dictionaries[term].keys()}")
     log_normalized_df = user_actions_dictionaries[term][subject]["log_normalized_scores"]
@@ -209,13 +201,12 @@ def index():
                            overall_discourse_charts=list(user_actions_dictionaries.keys()), # LIST of terms (current and past)
                            latest_chart=latest_term)
 
-@app.route('/get_chart')
-def get_chart():
-    chart = request.args.get('chart')
-    print(f"Selected Chart INSIDE get_chart() = {chart}")
-    if chart:
+@app.route('/get_chart') # Used to get the Overall Discourse Charts on the home page
+def get_overall_discourse_chart():
+    term = request.args.get('chart')
+    if term:
         # Generate the chart for the selected term
-        chart_html = generate_chart_for_overall_engagement(chart).to_html()
+        chart_html = generate_chart_for_overall_engagement(term).to_html()
         return chart_html
     else:
         return "<h2>No chart selected</h2>"
@@ -257,11 +248,14 @@ def authorized():
 
 @app.route("/<course_name>")
 def course_page(course_name):
+    current_term = get_current_trimester()
+    previous_term = get_previous_trimesters(current_term)[1] # Get the previous term, for example, if latest_term = "t2-2025", then previous_term = "t1-2025"
     course_name_original = course_name
     try:
         course_name = course_name.replace("-", "_").replace(":","_")
         return render_template(
             'course_specific_viz.html',
+            term_list_for_dropdown = [current_term, previous_term],
             course_name=course_name_original.title().replace("_"," "),
             course_name_escaped=course_name  # Pass the escaped course name to the template
         )
@@ -275,11 +269,11 @@ def course_page(course_name):
         )
 
 # New endpoint that returns only the top users chart
-@app.route("/<course_name>/top_users_chart")
-def top_users_chart(course_name):
+@app.route("/<course_name>/top_users_chart/<term>")
+def top_users_chart(course_name, term):
     try:
         course_name = course_name.replace("-", "_").replace(":","_").lower()
-        top_10_users_chart = generate_chart_for_course_specific_engagement(term="t1-2025", subject=course_name)
+        top_10_users_chart = get_top_10_users_chart(term=term, subject=course_name)
         return top_10_users_chart.to_html()
     except Exception as e:
         print(f"Error in top_users_chart for course = {course_name}: {e}")
@@ -287,11 +281,13 @@ def top_users_chart(course_name):
         return empty_chart.to_html()
 
 # New endpoint that returns only the weekwise engagement chart
-@app.route("/<course_name>/weekwise_chart")
-def weekwise_chart(course_name):
+@app.route("/<course_name>/weekwise_chart/<term>")
+def weekwise_chart(course_name, term):
     try:
         course_name = course_name.replace("-", "_").replace(":","_").lower()
-        user_actions_df = user_actions_dictionaries['t1-2025'][course_name]["user_actions_df"]
+        # user_actions_df = user_actions_dictionaries['t1-2025'][course_name]["user_actions_df"]
+        user_actions_df = user_actions_dictionaries[term][course_name]["user_actions_df"]
+        user_actions_df.to_csv(f"TRASH/data/{course_name}_user_actions_df_from_func.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
         weekwise_engagement_chart = create_weekwise_engagement(user_actions_df)
         return weekwise_engagement_chart.to_html()
     except Exception as e:
@@ -301,14 +297,18 @@ def weekwise_chart(course_name):
 
 @app.route("/get_most_frequent_first_responders/<course_name>", methods = ["GET"])
 def most_frequent_first_responders(course_name):
+    """ This function fetches the most frequent first responders for a given course."""
+    current_term = get_current_trimester() # For example, "t1-2025"
     course_name = course_name.replace("-", "_").replace(":","_").lower()
     # Finding most-frequent first-responders
-    unique_topics = user_actions_dictionaries["t1-2025"][course_name]["unique_topic_ids"]
-    most_freq_first_responders_list = get_top_10_first_responders(tuple(unique_topics[:60])) # This is currently a list of tuples; we will render it as a table on the frontend
-    return render_template("partials/first_responders_table.html", most_freq_first_responders=most_freq_first_responders_list)
+    # unique_topics = user_actions_dictionaries[current_term][course_name]["unique_topic_ids"]
+    most_freq_first_responders_list = user_actions_dictionaries[current_term][course_name]["most_frequent_first_responder"] # This is currently a list of tuples; we will render it as a table on the frontend
+    # most_freq_first_responders_list = get_top_10_first_responders(unique_topics)
+    return render_template("partials/first_responders_table.html", most_freq_first_responders=most_freq_first_responders_list, current_term=current_term)
 
-@app.route("/user_details/<user_name>", methods=["GET"])
+@app.route("/user_details/<user_name>", methods=["GET"]) # This route is invoked when user clicks on the "search" button on the "search_user" page
 def get_user_details(user_name):
+    """ This function fetches the user details for a given username."""
     summary_data = get_user_summary(user_name)
     basic_metrics, top_categories, most_liked_by = get_basic_metrics(summary_data), get_top_categories(summary_data), get_liked_by_users(summary_data)
     return jsonify({
@@ -320,30 +320,35 @@ def get_user_details(user_name):
 
 @app.route("/<course_name>/get_specific_users_stat", methods=["POST"])
 def specific_users_stat(course_name): # Returns a chart showing activity of a set of users
-    # try:
+    # try: # We will use try-except block during final deployment
         course_name = course_name.replace("-", "_").replace(":", "_").lower()
         user_list = request.form.get("user_list")
+        selected_term = request.form.get("selected_term")
         if not user_list:
             return jsonify({"error": "No usernames provided."}), 400
 
         user_list = tuple(user_list.split(","))
-        chart = get_users_engagement_chart(course_name, user_list)
+        chart = get_users_engagement_chart(course_name, user_list, term = selected_term)
         return chart.to_html()  # ← raw HTML string
     # except Exception as e:
     #     print(f"Error: {e}")
     #     return jsonify({"error": "Internal error occurred."}), 500
 
 
-@app.route('/search_user')
+@app.route('/search_user') # Invoked when user clicks on "Search User" button
 def search_user():
     return render_template('user.html')
 
 @app.route("/most_trending_topics/<course_name>", methods = ["GET"])
 def most_trending_topics(course_name):
-    print(f"Course name for finding trending topics is:  {course_name}")
-    course_name = course_name.replace("-", " ")
-    print(f"NEW Course name for finding trending topics is:  {course_name}")
-    slug, course_id = df_map_category_to_id.loc[df_map_category_to_id["name"]==course_name, ["slug", "category_id"]].iloc[0]
+    """
+    This function fetches the most trending topics for a given course.
+    It uses the course name to find the corresponding slug and category_id from df_map_category_to_id.
+    Then it fetches the recent topics using the fetch_recent_topics function and computes the trending scores using the compute_trending_scores function.
+    Finally, it renders the trending topics table using the trending_scores.
+    """
+    course_name = course_name.replace("-", " ").replace("_"," ")
+    slug, course_id = df_map_category_to_id.loc[df_map_category_to_id["name"].str.lower()==course_name, ["slug", "category_id"]].iloc[0]
     trending_topics = fetch_recent_topics(slug=slug, id=course_id) # ADD the args later
     trending_scores = compute_trending_scores(trending_topics)
     return render_template("partials/trending_topics_table.html", trending_scores=trending_scores)
@@ -351,16 +356,17 @@ def most_trending_topics(course_name):
 if __name__ == '__main__':
     # Initial load
     get_all_data()
+    user_actions_dictionaries['t1-2025']["deep_learning"]["user_actions_df"].to_csv("TRASH/data/deep_learning_from_main_t1-2025_user_actions_df.csv", index=False) # REMOVE THIS IN FINAL DEPLOYMENT
 
     # Schedule daily refresh
     scheduler = BackgroundScheduler()
     current_hour, current_minute = datetime.now().hour, datetime.now().minute # REMOVE THIS IN FINAL DEPLOYMENT
     print(f"Current hour: {current_hour}, Current minute: {current_minute}") # REMOVE THIS IN FINAL DEPLOYMENT
-    scheduler.add_job(refresh_all_data, 'cron', hour=current_hour, minute=current_minute+1)
+    scheduler.add_job(refresh_all_data, 'cron', hour=current_hour, minute=current_minute+1) # refresh data every day at 1 minute past the current hour
     scheduler.start()
 
     app.run(host='0.0.0.0', 
             port=5000, 
             debug=True, 
-            use_reloader=False
+            use_reloader=False # Prevents the scheduler from starting twice when debug mode is enabled.
             )

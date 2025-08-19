@@ -133,6 +133,32 @@ def create_stacked_bar_chart(raw_metrics, subject):
 
 # @lru_cache(maxsize=None)
 def fetch_recent_topics(slug = "stats2-kb", id=24):
+    """
+    Fetches recent discussion topics from a specified Discourse category within a defined time window (default: last 7 days).
+
+    Parameters:
+    - slug (str): The category slug used in the Discourse URL (default: "stats2-kb").
+    - id (int): The numeric category ID for the Discourse category (default: 24).
+
+    Returns:
+    - dict: A dictionary containing details of topics created within the last 7 days, with keys:
+        - "id": List of topic IDs.
+        - "title": List of topic titles.
+        - "created_at": List of creation timestamps (ISO format).
+        - "posts_count": List of post counts per topic.
+        - "reply_count": List of reply counts per topic.
+        - "views": List of view counts per topic.
+        - "like_count": List of like counts per topic.
+        - "has_accepted_answer": List of boolean values indicating if the topic has an accepted answer.
+
+    Behavior:
+    - Fetches up to 3 pages of topics from the specified category.
+    - Filters topics created within the last 7 days based on current UTC time.
+    - Skips topics without a "created_at" field.
+    - Prevents duplicate topic entries.
+    - Introduces a short delay (0.9 seconds) between page requests to avoid rate-limiting.
+    - Prints debug messages when encountering errors, duplicate topics, or empty pages.
+    """
     today_str = datetime.today().strftime("%d-%m-%Y") # Today's date in string format dd-mm-yyyy
     page=0
     last_10_days_topic_details = {"id":[]}
@@ -151,7 +177,6 @@ def fetch_recent_topics(slug = "stats2-kb", id=24):
             print(f"Failed to fetch page {page}\n {resp.text}")
             break
         info_dict = resp.json()
-        # print(f"Info dict keys = {info_dict.keys()}")
         topics = info_dict.get("topic_list", {}).get("topics", [])
         print(f"len topics = {len(topics)}")
 
@@ -183,48 +208,67 @@ def fetch_recent_topics(slug = "stats2-kb", id=24):
     return last_10_days_topic_details
 
 def compute_trending_scores(data: Dict):
+    """
+    Computes trending scores for topics based on views, posts, and likes, adjusted for recency.
+    Applies time-based decay and log normalization to prevent skew from outliers.
+    Returns the top 10 topics with details like URL, title, and solved status.
+    Useful for ranking discussion topics in online forums dynamically.
+    """
+    # Define weights for different engagement metrics
     weights = {
-        "views": 0.15,
-        "posts_count": 0.5,
-        "like_count": 0.35
+        "views": 0.15,        # Weight for number of views
+        "posts_count": 0.5,   # Weight for number of posts
+        "like_count": 0.35    # Weight for number of likes
     }
-    # Current time
+
+    # Get the current time in UTC
     now = datetime.now(timezone.utc)
 
-    scores = [] # each element is a tuple (score, topic_id)
+    # This list will store tuples containing (score, topic details)
+    scores = []
+
+    # Loop through each topic in the dataset
     for i in range(len(data["created_at"])):
-        # Parse created_at timestamp
+        # Convert the created_at string to a datetime object (handling the "Z" UTC marker)
         created_at = datetime.fromisoformat(data["created_at"][i].replace("Z", "+00:00"))
         
-        # Calculate age in hours
+        # Calculate topic's age in hours
         age_hours = (now - created_at).total_seconds() / 3600
-        age_hours = max(age_hours, 1)  # Prevent division by zero or over-weighting new topics
+        age_hours = max(age_hours, 1)  # Avoid division by zero or giving huge advantage to very new topics
 
-        # Normalize each metric by age
+        # Normalize each metric by time (per hour)
         views_per_hour = data["views"][i] / age_hours
         posts_per_hour = data["posts_count"][i] / age_hours
         likes_per_hour = data["like_count"][i] / age_hours
 
-        # Apply log normalization
-        norm_views = math.log1p(views_per_hour)
-        norm_posts = math.log1p(posts_per_hour)
-        norm_likes = math.log1p(likes_per_hour)
+        # Apply log normalization to reduce skew from very large values
+        norm_views = math.log1p(views_per_hour)   # log(1 + views/hour)
+        norm_posts = math.log1p(posts_per_hour)   # log(1 + posts/hour)
+        norm_likes = math.log1p(likes_per_hour)   # log(1 + likes/hour)
 
-        # Compute weighted score
+        # Compute the final weighted score for the topic
         score = (
-            weights.get("views", 0) * norm_views +
-            weights.get("posts_count", 0) * norm_posts +
-            weights.get("like_count", 0) * norm_likes
+            weights["views"] * norm_views +
+            weights["posts_count"] * norm_posts +
+            weights["like_count"] * norm_likes
         )
+
+        # Prepare additional details for output
         topics_url = f"https://discourse.onlinedegree.iitm.ac.in/t/{data['id'][i]}"
         solved_or_not = data["has_accepted_answer"][i]
         topic_title = data["title"][i]
         views = data["views"][i]
-        like_count = data["like_count"][i] 
-        scores.append((score, data["id"][i], topics_url, topic_title, solved_or_not, views, like_count)) # score, topic_id, URL, solved
+        like_count = data["like_count"][i]
+
+        # Add the result tuple to the list
+        scores.append((score, data["id"][i], topics_url, topic_title, solved_or_not, views, like_count))
     
+    # Sort the list by score in descending order
     scores.sort(reverse=True, key=lambda x: x[0])
+
+    # Return the top 10 trending topics
     return scores[:10]
+
 
 
 

@@ -71,12 +71,11 @@ def execute_query_103(query_id, query_params=None): # for course-specific user a
 
 
         iteration_count += 1  # Increment iteration count for pagination
-        if iteration_count>0: break # REMOVE
-        time.sleep(2)  # Wait before the next request
+        # if iteration_count>0: break # REMOVE
+        time.sleep(1.5)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
-
 
 # @lru_cache(maxsize=None, typed=False)
 def execute_query_107(query_id, query_params=None): # fetch category_ids
@@ -231,7 +230,7 @@ def execute_query_108(query_id, query_params=None): # userid-name mapping
             break
 
         iteration_count += 1  # Increment iteration count for pagination
-        time.sleep(2)  # Wait before the next request
+        time.sleep(1.2)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
@@ -301,7 +300,7 @@ def execute_query_102(query_id, query_params=None): # overall discourse engageme
             break
 
         iteration_count += 1  # Increment iteration count for pagination
-        if iteration_count>1: break
+        if iteration_count>1: break # REMOVE FROM FINAL DEPLOYMENT
         time.sleep(2)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame

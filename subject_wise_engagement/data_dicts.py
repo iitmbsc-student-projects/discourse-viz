@@ -4,7 +4,7 @@ def get_all_data_dicts():
     import numpy as np
 
     # Imports from other programs
-    from subject_wise_engagement.global_functions_1 import sanitize_filepath, get_current_trimester, get_previous_trimesters,get_all_course_specific_df, get_overall_engagement_df
+    from subject_wise_engagement.global_functions_1 import sanitize_filepath, get_current_trimester, get_previous_trimesters,get_course_specific_dataframes, get_overall_engagement_df, get_top_10_first_responders
     from subject_wise_engagement.fetch_category_IDs_107 import df_map_category_to_id
 
     curr_plus_prev_trimesters = get_previous_trimesters(get_current_trimester())[:2] # The items of this list will act as keys of the dictionary; elements are terms in descending order, like current(t2-2025), previous(t1-2025), t3-2024 and so on
@@ -28,7 +28,7 @@ def get_all_data_dicts():
             for row in df_map_category_to_id.itertuples():
                 try:
                     category_id = row.category_id
-                    if not category_id==53: continue
+                    if not category_id==53: continue # REMOVE FROM FINAL DEPLOYMENT
                     category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
                     print("category_name = ", category_name)
                     if category_name not in user_actions_dictionaries[key]:
@@ -40,10 +40,10 @@ def get_all_data_dicts():
                         user_actions_dictionaries[key][category_name]["unique_topic_ids"] = []
                     
                     start_date, end_date = get_trimester_dates(term)
-                    end_date = "27-05-2025" # REMOVE. THIS IS ONLY FOR DATA REFRESHMENT TESTING
+                    # end_date = "27-05-2025" # REMOVE. THIS IS ONLY FOR DATA REFRESHMENT TESTING
                     params = {"category_id": str(category_id), "start_date": start_date, "end_date": end_date}
                     
-                    user_actions_df, raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids = get_all_course_specific_df(query_params=tuple(params.items()))
+                    user_actions_df, raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids = get_course_specific_dataframes(query_params=tuple(params.items()))
 
                     # if not user_actions_df.empty and len(user_actions_df)>75: # THIS WILL BE IMPLEMENTED LATER AFTER DISCUSSION
                     user_actions_dictionaries[key][category_name]["user_actions_df"] = user_actions_df
@@ -55,6 +55,7 @@ def get_all_data_dicts():
                     user_actions_dictionaries[key][category_name]["log_normalized_scores"] = log_normalized_scores_df
 
                     user_actions_dictionaries[key][category_name]["unique_topic_ids"] = unique_topic_ids
+                    user_actions_dictionaries[key][category_name]["most_frequent_first_responder"] = get_top_10_first_responders(unique_topic_ids)
 
                 except Exception as exec:
                     print(f"Error: {exec} for subject: {category_name} for term: {term}")
@@ -68,7 +69,7 @@ def get_all_data_dicts():
 
     for term in curr_plus_prev_trimesters:
         start_date, end_date = get_trimester_dates(term)
-        params = {"start_date": start_date, "end_date": "27-05-2025"} # REMOVE. THIS IS ONLY FOR DATA REFRESHMENT TESTING
+        params = {"start_date": start_date, "end_date": end_date} # REMOVE. THIS IS ONLY FOR DATA REFRESHMENT TESTING
         
         user_actions_dictionaries[term]["overall"] = {
             "raw_metrics": pd.DataFrame(),

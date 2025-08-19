@@ -13,12 +13,20 @@
 
 <!-- Master container -->
 <div class="course-dashboard">
-    <!-- First chart section -->
+    <!-- First chart section with dropdown -->
     <div class="chart-section">
         <h2>Top-10 users for {{ course_name }}</h2>
+        <div class="dropdown-container">
+            <label for="term-select">Select Term:</label>
+            <select id="term-select" class="term-dropdown">
+                {% for term in term_list_for_dropdown %}
+                    <option value="{{ term }}" {% if loop.index == 2 %}selected{% endif %}>{{ term }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <div class="chart-container">
             <!-- Use iframe to completely isolate the chart -->
-            <iframe id="top-users-iframe" src="/{{ course_name }}/top_users_chart" frameborder="0" width="100%"
+            <iframe id="top-users-iframe" src="/{{ course_name_escaped }}/top_users_chart/{{ term_list_for_dropdown[1] }}" frameborder="0" width="100%"
                 height="500px"></iframe>
         </div>
     </div>
@@ -26,9 +34,17 @@
     <!-- Second chart section -->
     <div class="chart-section">
         <h2>Weekwise Engagement Chart for {{ course_name }}</h2>
+        <div class="dropdown-container">
+            <label for="weekwise-term-select">Select Term:</label>
+            <select id="weekwise-term-select" class="term-dropdown">
+                {% for term in term_list_for_dropdown %}
+                    <option value="{{ term }}" {% if loop.index == 2 %}selected{% endif %}>{{ term }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <div class="chart-container">
             <!-- Use iframe to completely isolate the chart -->
-            <iframe id="weekwise-iframe" src="/{{ course_name }}/weekwise_chart" frameborder="0" width="100%"
+            <iframe id="weekwise-iframe" src="/{{ course_name_escaped }}/weekwise_chart/{{ term_list_for_dropdown[1] }}" frameborder="0" width="100%"
                 height="500px"></iframe>
         </div>
     </div>
@@ -48,6 +64,15 @@
                 <label for="usernames">Enter usernames (comma-separated):</label><br>
                 <input type="text" id="usernames" name="user_list" placeholder="e.g., user1,user2,user3" required>
                 <br><br>
+                <div class="dropdown-container">
+                    <label for="specific-users-term-select">Select Term:</label>
+                    <select id="specific-users-term-select" name="selected_term" class="term-dropdown">
+                        {% for term in term_list_for_dropdown %}
+                            <option value="{{ term }}" {% if loop.index == 2 %}selected{% endif %}>{{ term }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <br>
                 <button type="submit" class="submit-btn">Submit</button>
             </form>
             <div id="error-message" class="error-text"></div>
@@ -93,6 +118,28 @@
         min-height: 300px;
     }
 
+    .dropdown-container {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .term-dropdown {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: white;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .term-dropdown:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
     h2,
     h3 {
         margin-top: 0;
@@ -136,13 +183,33 @@
 </style>
 
 <script>
+    // Handle term selection change for top users chart
+    document.getElementById("term-select").addEventListener("change", function() {
+        const selectedTerm = this.value;
+        const courseName = "{{ course_name_escaped }}";
+        const iframe = document.getElementById("top-users-iframe");
+        
+        // Update iframe src with selected term
+        iframe.src = `/${courseName}/top_users_chart/${selectedTerm}`;
+    });
+
+    // Handle term selection change for weekwise chart
+    document.getElementById("weekwise-term-select").addEventListener("change", function() {
+        const selectedTerm = this.value;
+        const courseName = "{{ course_name_escaped }}";
+        const iframe = document.getElementById("weekwise-iframe");
+        
+        // Update iframe src with selected term
+        iframe.src = `/${courseName}/weekwise_chart/${selectedTerm}`;
+    });
+
     // Handle the specific users form submission
     document.getElementById("user-form").addEventListener("submit", function (event) {
         event.preventDefault();
 
         const form = event.target;
         const formData = new FormData(form);
-        const courseName = "{{ course_name }}";
+        const courseName = "{{ course_name_escaped }}";
 
         fetch(`/${courseName}/get_specific_users_stat`, {
             method: "POST",
@@ -181,7 +248,7 @@
 
     // Load first responders data
     window.addEventListener("DOMContentLoaded", () => {
-        const courseName = "{{ course_name }}";
+        const courseName = "{{ course_name_escaped }}";
         fetch(`/get_most_frequent_first_responders/${courseName}`)
             .then(response => response.text())
             .then(html => {
