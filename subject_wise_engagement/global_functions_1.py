@@ -75,7 +75,6 @@ def create_raw_metrics_dataframe(df):
     subject_dataframe = df.copy()
     subject_dataframe['action_type'] = subject_dataframe['action_type'].astype(str)
     subject_dataframe['action_name'] = subject_dataframe['action_type'].map(action_to_description)
-    subject_dataframe.to_csv("TRASH/data/subject_user_actions_dataframe.csv", index=False) # REMOVE THIS LINE AFTER TESTING
     subject_dataframe = pd.crosstab(subject_dataframe["acting_username"], subject_dataframe["action_name"]) # Builds a crosstab (pivot table) where: Rows = acting_username (users performing actions; Columns = action_name (types of actions); Values = count of occurrences for each (user, action) combination.
 
     columns_to_be_dropped = ['linked','received_response', "user's_post_quoted",
@@ -87,7 +86,6 @@ def create_raw_metrics_dataframe(df):
     subject_dataframe = subject_dataframe[["acting_username"]+[col for col in subject_dataframe.columns if col != 'acting_username']]  # Reordering the columns
     subject_dataframe.index = range(0, len(subject_dataframe))
     subject_dataframe.columns.name = None
-    subject_dataframe.to_csv("TRASH/data/subject_raw_metrics_dataframe.csv", index=False) # REMOVE THIS LINE AFTER TESTING
     return subject_dataframe # Returns raw metrics dataframe
 
 
@@ -114,7 +112,6 @@ def create_unnormalized_scores_dataframe(raw_metrics_df): # unnormalised scores
 
     df2["z_score"] = round((df2["initial_score"] - df2["initial_score"].mean()) / df2["initial_score"].std(),2) # z_score rounded to 2 decimal places
     df2 = df2.sort_values(by="z_score", ascending=False)
-    df2.to_csv("TRASH/data/subject_unnormalized_scores_dataframe.csv", index=False) # REMOVE THIS LINE AFTER TESTING
     return df2
 
 
@@ -138,7 +135,6 @@ def create_log_normalized_scores_dataframe(raw_metrics_df):
 
     # round only if needed for presentation
     out["z_score"] = out["z_score"].round(2)
-    out.to_csv("TRASH/data/subject_log_normalized_scores_dataframe.csv", index=False) # REMOVE THIS LINE AFTER TESTING
     return out
 
 
@@ -153,12 +149,10 @@ def get_course_specific_dataframes(query_params):
     4. unique_topic_ids: List of unique topic-ids for that course in the time-frame (this is used to find the top 10 first responders)
     """
     query_params = dict(query_params)
-    print(f'Executing query_103 for cat_id={query_params["category_id"]} and dates={query_params["start_date"]}; {query_params["end_date"]}') # REMOVE
     user_actions_df = execute_query_103(103, query_params)
-    # user_actions_df.info()
     unique_topic_ids = user_actions_df[user_actions_df["target_post_id"] == -1]["target_topic_id"].unique() # If target_post_id is -1, then it means this specific post is a new topic (and not a reply to any other post)
     if user_actions_df.empty:
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), [] # Return 3 empty DFs + one empty list
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), ["no topics as of because of very low discourse activity"] # Return 3 empty DFs + one list
     
     raw_metrics_df = create_raw_metrics_dataframe(user_actions_df)
     unnormalized_scores_df = create_unnormalized_scores_dataframe(raw_metrics_df)
@@ -218,7 +212,6 @@ def get_overall_engagement_df(query_params):
         log_normalized_scores_dataframe: Log-normalized scores dataframe for all users
     """
     query_params = dict(query_params)
-    print(f'Executing query_102 (for all users data) for dates={query_params["start_date"]}; {query_params["end_date"]}') # REMOVE THIS LINE AFTER TESTING
     raw_metrics_df = execute_query_102(102, query_params = query_params)
     if raw_metrics_df.empty:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
@@ -228,12 +221,12 @@ def get_overall_engagement_df(query_params):
 
 
 
-# @lru_cache(maxsize=None)
+@lru_cache(maxsize=256)
 def get_top_10_first_responders(topic_list):
     
     most_frequent_users = {}
     for t in topic_list: # BOTTLENECK OF THIS FUNCTION
-        # try:
+        try:
             response = requests.get(
                 url = f"https://discourse.onlinedegree.iitm.ac.in/t/{t}.json",
                 headers=api_headers
@@ -245,13 +238,14 @@ def get_top_10_first_responders(topic_list):
                     username = post["username"] # Find the username of the first responder
                     most_frequent_users[username] = most_frequent_users.get(username,0)+1 # Increment the frequency of first-responder
             time.sleep(1) # to avoid hitting the rate limit of the Discourse API
-        # except Exception as e:
-        #     print(f"Encountered an ERROR {e} when trying to find details for the topic {t}")
-        #     continue
+        except Exception as e:
+            print(f"Encountered an ERROR {e} when trying to find details for the topic {t}")
+            continue
+    if not most_frequent_users: return [("Couldn't fetch the response.","Please contact support if issue persists")]
 
     sorted_users = sorted(most_frequent_users.items(), key=lambda x: x[1], reverse=True)
     top_10_first_responders = sorted_users[:10] # Note that this is a list of tuples in format (username, count)
-    print("top_10_first_responders = ", top_10_first_responders)
+    # print("top_10_first_responders = ", top_10_first_responders)
     return top_10_first_responders
 
 
@@ -346,8 +340,6 @@ def create_weekwise_engagement(user_actions_df):
         lambda row: "\n".join([f"{col}:{row[col]} | " for col in pivot_table.columns if col != "total_score"]),
         axis=1
     )
-    pivot_table_reset.to_csv("TRASH/data/subject_weekwise_engagement.csv", index=False) # REMOVE THIS LINE AFTER TESTING
-
     # Create the heatmap
     heatmap = alt.Chart(pivot_table_reset).mark_rect().encode(
         x=alt.X(

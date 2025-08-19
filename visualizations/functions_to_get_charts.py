@@ -1,7 +1,6 @@
 # PURPOSE: This notebook creates some basic visualizations of the data for whole discourse. The data is NOT related to any specific category.
 # MODIFICATIONS NEEDED: The function "create_weekwise_engagement(df)" from global_functions_1.py should be placed here
 
-# %%
 import altair as alt
 import pandas as pd
 import numpy as np

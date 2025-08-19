@@ -24,7 +24,7 @@ from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")  # secret key to secure cookies and session data.
 oauth = OAuth(app) # OAuth is a way to safely let users login using Google without handling their passwords yourself
-last_refresh_date = "20-05-2025" # For testing purposes; REMOVE IN FINAL DEPLOYMENT
+# last_refresh_date = "20-05-2025" # For testing purposes; REMOVE IN FINAL DEPLOYMENT
 
 
 
@@ -39,8 +39,8 @@ def load_df_map_category_to_id():
 
 def load_id_username_mapping():
     from subject_wise_engagement.execute_query import execute_query_108
-    df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT
-    # df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
+    # df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT
+    df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
     return df
 
 # DATA VARIABLES
@@ -48,8 +48,8 @@ def get_all_data():
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping
     user_actions_dictionaries = load_user_actions_dictionaries()
     df_map_category_to_id = load_df_map_category_to_id()
-    # id_username_mapping = load_id_username_mapping()
-    id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE
+    id_username_mapping = load_id_username_mapping()
+    # id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE
 
 def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
@@ -58,9 +58,7 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     print(f"Today's date is: {today}")
     trimester_corresponding_to_today = get_current_trimester()
     print(f"Trimester corresponding to today is: {trimester_corresponding_to_today}")
-    trimester_data_to_be_removed = get_previous_trimesters(trimester_corresponding_to_today)[2] # For example, if today's trimester = "t2-2025", then remove any data corresponding to "t3-2024"
-    print(f"Trimester data to be removed is: {trimester_data_to_be_removed}")
-    
+    trimester_data_to_be_removed = get_previous_trimesters(trimester_corresponding_to_today)[2] # For example, if today's trimester = "t2-2025", then DELETE any data corresponding to "t3-2024"    
     user_actions_dictionaries.pop(trimester_data_to_be_removed, None) # Remove the data, without raising eny errors
     print("User actions dictionaries keys: ", user_actions_dictionaries.keys())
 
@@ -81,9 +79,7 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
 
             # Now append this latest user_actions_df to the existing user_actions_df, and DROP the duplicate rows
             existing_user_actions_df = user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"]
-            # existing_user_actions_df.to_csv(f"TRASH/data/{category_name}_existing_user_actions_df.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
             new_user_actions_df = pd.concat([existing_user_actions_df, latest_user_actions_df]).drop_duplicates()
-            # new_user_actions_df.to_csv(f"TRASH/data/{category_name}_new_user_actions_df.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"] = new_user_actions_df
 
             # Now calculate the scores dataframe using new_user_actions_df
@@ -100,21 +96,15 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     query_params_for_102 = {"start_date": last_refresh_date, "end_date": today}
     latest_raw_metrics_for_overall_engagement = execute_query_102(102, query_params = query_params_for_102)
     existing_raw_metrics_for_overall_engagement = user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["raw_metrics"]
-    # existing_raw_metrics_for_overall_engagement.to_csv(f"TRASH/data/old_raw_metrics_for_overall_engagement.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
 
     # Concatenate the latest raw metrics with the existing raw metrics, and drop duplicates
     new_raw_metrics_for_overall_engagement = pd.concat([latest_raw_metrics_for_overall_engagement, existing_raw_metrics_for_overall_engagement]).drop_duplicates()
-    # new_raw_metrics_for_overall_engagement.to_csv(f"TRASH/data/new_raw_metrics_for_overall_engagement_wo_groupby.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
     new_raw_metrics_for_overall_engagement = new_raw_metrics_for_overall_engagement.groupby("user_id", as_index=False).sum() # Group by user_id and sum all other metrics for each user
-    # new_raw_metrics_for_overall_engagement.to_csv(f"TRASH/data/new_raw_metrics_for_overall_engagement_with_groupby.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
 
     new_raw_metrics_for_overall_engagement = new_raw_metrics_for_overall_engagement[["user_id"] + list(weights_dict_for_overall_engaagement.keys())]
-    # new_raw_metrics_for_overall_engagement.to_csv(f"TRASH/data/new_raw_metrics_for_overall_engagement.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
 
 
     new_unnormalized_scores_dataframe_all_users, new_log_normalized_scores_dataframe_all_users = create_unnormalized_scores_dataframe_for_all_users(new_raw_metrics_for_overall_engagement), create_log_normalized_scores_dataframe_for_all_users(new_raw_metrics_for_overall_engagement)
-    # new_unnormalized_scores_dataframe_all_users.to_csv(f"TRASH/data/new_unnormalized_scores_dataframe_all_users.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
-    # new_log_normalized_scores_dataframe_all_users.to_csv(f"TRASH/data/new_log_normalized_scores_dataframe_all_users.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
 
     # Final assignment for all_users_engagement
     user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["raw_metrics"] = new_raw_metrics_for_overall_engagement
@@ -122,10 +112,9 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["log_normalized_scores"] = new_log_normalized_scores_dataframe_all_users
 
     last_refresh_date = today # Update the last refresh date to today
+    get_top_10_first_responders.cache_clear() # Clear cache to avoid stale results
+    fetch_recent_topics.cache_clear()
     print(f"Data refreshed successfully for {trimester_corresponding_to_today} trimester. Last refresh date is now set to {last_refresh_date}.")
-
-
-
 
 
 
@@ -148,8 +137,8 @@ diploma_data_science_courses.sort()
 diploma_programming_courses.sort()
 foundation_courses.sort()
 
-# @lru_cache(maxsize=None)
-def generate_chart_for_overall_engagement(term): # can add a cache to this function, but it is not necessary because the calculations  are already fast
+@lru_cache(maxsize=256)
+def generate_chart_for_overall_engagement(term): # can add a cache to this function, but it is not necessary because the calculations are already fast
     unnormalized_df = user_actions_dictionaries[term]["overall"]["unnormalized_scores"]
     unnormalized_df = unnormalized_df[unnormalized_df["user_id"]>0]
     top_10_users = pd.DataFrame(unnormalized_df.head(10))
@@ -158,8 +147,11 @@ def generate_chart_for_overall_engagement(term): # can add a cache to this funct
     chart = create_stacked_bar_chart_for_overall_engagement(top_10_users, term=term)
     return chart
 
-# @lru_cache(maxsize=None)
+@lru_cache(maxsize=256)
 def get_users_engagement_chart(course, user_list, term="t1-2025"):
+    """
+    Returns the course-specific chart of a specific set of users; uses unnormalised dataframe
+    """
     user_list = [name.lower().strip() for name in user_list]
     relevant_df = user_actions_dictionaries[term][course]["unnormalized_scores"]
     relevant_df = relevant_df[(relevant_df["acting_username"].str.lower()).isin(user_list)] # filter based on user_list
@@ -169,10 +161,11 @@ def get_users_engagement_chart(course, user_list, term="t1-2025"):
     else:
         return create_empty_chart_in_case_of_errors(message="None of the users from the list was found, please provide a new set of users.")
 
-# @lru_cache(maxsize=None)
+@lru_cache(maxsize=256)
 def get_top_10_users_chart(term, subject):
-    print("SUBJECT = ", subject, "TERM = ",term)
-    # print(f"KEYS = {user_actions_dictionaries[term].keys()}")
+    """
+    Returns the course & term specific chart of top-10 most active users; uses log-normalised dataframe
+    """
     log_normalized_df = user_actions_dictionaries[term][subject]["log_normalized_scores"]
 
     # Finding the top-10 users
@@ -183,10 +176,6 @@ def get_top_10_users_chart(term, subject):
         highest_activity_chart = create_stacked_bar_chart_for_course_specific_engagement(raw_metrics=raw_metrics, subject=subject)
     else:
         highest_activity_chart = create_empty_chart_in_case_of_errors(message = """Course was either not offered this term OR it had extremely less interactions on discourse""")
-
-
-    # Creating a calender-heatmap
-    pass
     
     return highest_activity_chart
 
@@ -285,9 +274,7 @@ def top_users_chart(course_name, term):
 def weekwise_chart(course_name, term):
     try:
         course_name = course_name.replace("-", "_").replace(":","_").lower()
-        # user_actions_df = user_actions_dictionaries['t1-2025'][course_name]["user_actions_df"]
         user_actions_df = user_actions_dictionaries[term][course_name]["user_actions_df"]
-        user_actions_df.to_csv(f"TRASH/data/{course_name}_user_actions_df_from_func.csv", index=False) # REMOVE IN FINAL DEPLOYMENT
         weekwise_engagement_chart = create_weekwise_engagement(user_actions_df)
         return weekwise_engagement_chart.to_html()
     except Exception as e:
@@ -298,12 +285,17 @@ def weekwise_chart(course_name, term):
 @app.route("/get_most_frequent_first_responders/<course_name>", methods = ["GET"])
 def most_frequent_first_responders(course_name):
     """ This function fetches the most frequent first responders for a given course."""
-    current_term = get_current_trimester() # For example, "t1-2025"
-    course_name = course_name.replace("-", "_").replace(":","_").lower()
-    # Finding most-frequent first-responders
-    # unique_topics = user_actions_dictionaries[current_term][course_name]["unique_topic_ids"]
-    most_freq_first_responders_list = user_actions_dictionaries[current_term][course_name]["most_frequent_first_responder"] # This is currently a list of tuples; we will render it as a table on the frontend
-    # most_freq_first_responders_list = get_top_10_first_responders(unique_topics)
+    try:
+        current_term = get_current_trimester() # For example, "t1-2025"
+        course_name = course_name.replace("-", "_").replace(":","_").lower()
+        print(course_name,"\n",user_actions_dictionaries[current_term].keys())
+        # Finding most-frequent first-responders
+        unique_topics = user_actions_dictionaries[current_term][course_name]["unique_topic_ids"]
+        # most_freq_first_responders_list = user_actions_dictionaries[current_term][course_name]["most_frequent_first_responder"] # This is currently a list of tuples; we will render it as a table on the frontend
+        most_freq_first_responders_list = get_top_10_first_responders(tuple(unique_topics))
+    except Exception as e:
+        most_freq_first_responders_list = [("Couldn't fetch the response.","Please contact support if issue persists")]
+        print(f"Encountered an error {e} while finding most_frequent_first_responders")
     return render_template("partials/first_responders_table.html", most_freq_first_responders=most_freq_first_responders_list, current_term=current_term)
 
 @app.route("/user_details/<user_name>", methods=["GET"]) # This route is invoked when user clicks on the "search" button on the "search_user" page
@@ -320,7 +312,7 @@ def get_user_details(user_name):
 
 @app.route("/<course_name>/get_specific_users_stat", methods=["POST"])
 def specific_users_stat(course_name): # Returns a chart showing activity of a set of users
-    # try: # We will use try-except block during final deployment
+    try: # We will use try-except block during final deployment
         course_name = course_name.replace("-", "_").replace(":", "_").lower()
         user_list = request.form.get("user_list")
         selected_term = request.form.get("selected_term")
@@ -330,9 +322,9 @@ def specific_users_stat(course_name): # Returns a chart showing activity of a se
         user_list = tuple(user_list.split(","))
         chart = get_users_engagement_chart(course_name, user_list, term = selected_term)
         return chart.to_html()  # ← raw HTML string
-    # except Exception as e:
-    #     print(f"Error: {e}")
-    #     return jsonify({"error": "Internal error occurred."}), 500
+    except Exception as e:
+        print(f"Error: {e} in specific_users_stat function for the route /{course_name}/get_specific_users_stat")
+        return jsonify({"error": "Internal error occurred."}), 500
 
 
 @app.route('/search_user') # Invoked when user clicks on "Search User" button
@@ -347,22 +339,24 @@ def most_trending_topics(course_name):
     Then it fetches the recent topics using the fetch_recent_topics function and computes the trending scores using the compute_trending_scores function.
     Finally, it renders the trending topics table using the trending_scores.
     """
-    course_name = course_name.replace("-", " ").replace("_"," ")
-    slug, course_id = df_map_category_to_id.loc[df_map_category_to_id["name"].str.lower()==course_name, ["slug", "category_id"]].iloc[0]
-    trending_topics = fetch_recent_topics(slug=slug, id=course_id) # ADD the args later
-    trending_scores = compute_trending_scores(trending_topics)
-    return render_template("partials/trending_topics_table.html", trending_scores=trending_scores)
+    try:
+        course_name = course_name.replace("-", " ").replace("_"," ")
+        slug, course_id = df_map_category_to_id.loc[df_map_category_to_id["name"].str.lower()==course_name, ["slug", "category_id"]].iloc[0]
+        trending_topics = fetch_recent_topics(slug=slug, id=course_id) # ADD the args later
+        trending_scores = compute_trending_scores(trending_topics)
+        return render_template("partials/trending_topics_table.html", trending_scores=trending_scores, error=False)
+    except Exception as e:
+        return render_template("partials/trending_topics_table.html", trending_scores=[], error=True)
 
 if __name__ == '__main__':
     # Initial load
     get_all_data()
-    user_actions_dictionaries['t1-2025']["deep_learning"]["user_actions_df"].to_csv("TRASH/data/deep_learning_from_main_t1-2025_user_actions_df.csv", index=False) # REMOVE THIS IN FINAL DEPLOYMENT
 
     # Schedule daily refresh
     scheduler = BackgroundScheduler()
     current_hour, current_minute = datetime.now().hour, datetime.now().minute # REMOVE THIS IN FINAL DEPLOYMENT
-    print(f"Current hour: {current_hour}, Current minute: {current_minute}") # REMOVE THIS IN FINAL DEPLOYMENT
-    scheduler.add_job(refresh_all_data, 'cron', hour=current_hour, minute=current_minute+1) # refresh data every day at 1 minute past the current hour
+    # print(f"Current hour: {current_hour}, Current minute: {current_minute}") # REMOVE THIS IN FINAL DEPLOYMENT
+    scheduler.add_job(refresh_all_data, 'cron', hour=1, minute=0) # refresh data every day at 1 minute past the current hour
     scheduler.start()
 
     app.run(host='0.0.0.0', 

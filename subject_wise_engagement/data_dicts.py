@@ -17,10 +17,11 @@ def get_all_data_dicts():
             't3': ('01/09', '31/12')
         }
         return (f"{trimester_dates[t][0]}/{y}",f"{trimester_dates[t][1]}/{y}")
+    
     user_actions_dictionaries = {}
     error_list = []
 
-    for term in curr_plus_prev_trimesters: # keys are actually the terms, like "t1-2025","t3-2024"
+    for term in curr_plus_prev_trimesters: # keys are actually the terms, like "t1-2025","t3-2024"; # THIS LOOP IS FOR FINDIND THE REQUIRED DATA FOR COURSES
         key=term
         user_actions_dictionaries[key] = {}
         count=0
@@ -40,7 +41,6 @@ def get_all_data_dicts():
                         user_actions_dictionaries[key][category_name]["unique_topic_ids"] = []
                     
                     start_date, end_date = get_trimester_dates(term)
-                    # end_date = "27-05-2025" # REMOVE. THIS IS ONLY FOR DATA REFRESHMENT TESTING
                     params = {"category_id": str(category_id), "start_date": start_date, "end_date": end_date}
                     
                     user_actions_df, raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids = get_course_specific_dataframes(query_params=tuple(params.items()))
@@ -55,7 +55,7 @@ def get_all_data_dicts():
                     user_actions_dictionaries[key][category_name]["log_normalized_scores"] = log_normalized_scores_df
 
                     user_actions_dictionaries[key][category_name]["unique_topic_ids"] = unique_topic_ids
-                    user_actions_dictionaries[key][category_name]["most_frequent_first_responder"] = get_top_10_first_responders(unique_topic_ids)
+                    # user_actions_dictionaries[key][category_name]["most_frequent_first_responder"] = get_top_10_first_responders(unique_topic_ids) # Keep it or remove it in final deployment?
 
                 except Exception as exec:
                     print(f"Error: {exec} for subject: {category_name} for term: {term}")
@@ -68,8 +68,9 @@ def get_all_data_dicts():
 
 
     for term in curr_plus_prev_trimesters:
+        # THIS LOOP IS FOR FINDIND THE REQUIRED DATA OF OVERALL DISCOURSE
         start_date, end_date = get_trimester_dates(term)
-        params = {"start_date": start_date, "end_date": end_date} # REMOVE. THIS IS ONLY FOR DATA REFRESHMENT TESTING
+        params = {"start_date": start_date, "end_date": end_date}
         
         user_actions_dictionaries[term]["overall"] = {
             "raw_metrics": pd.DataFrame(),
@@ -88,7 +89,7 @@ def get_all_data_dicts():
             continue
     
     if error_list: print(error_list)
-    return user_actions_dictionaries
+    return user_actions_dictionaries # MOST IMP VARIABLE IN THE WHOLE CODE
 
 if __name__=="__main__":
     user_actions_dictionaries = get_all_data_dicts()
