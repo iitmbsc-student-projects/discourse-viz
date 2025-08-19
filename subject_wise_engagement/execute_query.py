@@ -256,7 +256,7 @@ def execute_query_102(query_id, query_params=None): # overall discourse engageme
     headers = {
         "Accept": "*/*",
         "Api-Key": API_KEY_GLOBAL,  # Get API key from userdata
-        "Api-Username": "shubhamG",  # Set the username for the API
+        "Api-Username": API_USERNAME,  # Set the username for the API
         "Content-Type": "multipart/form-data"  # Set content type
     }
     # Loop until there are no more results
@@ -297,7 +297,7 @@ def execute_query_102(query_id, query_params=None): # overall discourse engageme
             break
 
         iteration_count += 1  # Increment iteration count for pagination
-        if iteration_count>1: break # REMOVE FROM FINAL DEPLOYMENT
+        # if iteration_count>1: break # REMOVE FROM FINAL DEPLOYMENT
         time.sleep(2)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
