@@ -76,11 +76,11 @@
                 <button type="submit" class="submit-btn">Submit</button>
             </form>
             <div id="error-message" class="error-text"></div>
-        </div>
-
-        <h3>Specific Users Chart</h3>
-        <div class="chart-container" id="specific-users-chart">
-            <!-- Will be populated after form submission -->
+            
+            <!-- Chart will be rendered here after form submission -->
+            <div id="specific-users-chart" style="margin-top: 20px;">
+                <!-- Will be populated after form submission -->
+            </div>
         </div>
     </div>
     <!-- Most Trending Topics section -->
@@ -203,13 +203,19 @@
         iframe.src = `/${courseName}/weekwise_chart/${selectedTerm}`;
     });
 
-    // Handle the specific users form submission
-    document.getElementById("user-form").addEventListener("submit", function (event) {
-        event.preventDefault();
-
-        const form = event.target;
+    // Function to fetch and display specific users chart
+    function fetchSpecificUsersChart() {
+        const form = document.getElementById("user-form");
         const formData = new FormData(form);
         const courseName = "{{ course_name_escaped }}";
+        const userList = formData.get("user_list");
+
+        // Only fetch if user list is not empty
+        if (!userList || userList.trim() === "") {
+            document.getElementById("specific-users-chart").innerHTML = "";
+            document.getElementById("error-message").textContent = "";
+            return;
+        }
 
         fetch(`/${courseName}/get_specific_users_stat`, {
             method: "POST",
@@ -244,6 +250,17 @@
             .catch(error => {
                 document.getElementById("error-message").textContent = error.message;
             });
+    }
+
+    // Handle the specific users form submission
+    document.getElementById("user-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+        fetchSpecificUsersChart();
+    });
+
+    // Handle dropdown change for specific users chart
+    document.getElementById("specific-users-term-select").addEventListener("change", function() {
+        fetchSpecificUsersChart();
     });
 
     // Load first responders data

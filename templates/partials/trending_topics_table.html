@@ -23,6 +23,8 @@
             {% endfor %}
         </tbody>
     </table>
+{% elif error %}
+    <p>No trending topics found because of some error. Please contact support if issue persists</p>
 {% else %}
-    <p>No trending topics found.</p>
+    <p>No trending topics found because of very low activty on course-forum in last 7 days</p>
 {% endif %}

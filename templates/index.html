@@ -73,6 +73,20 @@
         color: #0056b3;
         font-size: 22px;
     }
+    #selected-chart {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 10px; /* Reduced from 20px */
+    min-height: auto; /* Remove fixed 800px height */
+    padding: 10px 0; /* Optional: small padding for breathing room */
+}
+
+
+#selected-chart h2 {
+    margin-bottom: 10px; /* Reduce spacing between heading and chart */
+}
 
     iframe {
         max-width: 100%;
@@ -168,13 +182,13 @@
     </form>
 </div>
 
-<div id="selected-chart"
-    style="display: flex; justify-content: center; align-items: center; flex-direction: column; margin-top: 20px; min-height: 800px;">
-    <h2 style="text-align: center; margin-bottom: 20px;">Selected Chart</h2>
+<div id="selected-chart">
+    <h2>Selected Chart</h2>
     <div id="chart-container">
         <!-- The chart HTML will be dynamically loaded here -->
     </div>
 </div>
+
 </div>
 
 <script>
