@@ -1,3 +1,4 @@
+{% if most_freq_first_responders %}
 <h2 style="text-align: center; margin-inline: 25%;">top-10 first responders for {{current_term}} (meaning those users which were the first to respond to a new topic)</h2>
 <table style="margin: 0 auto; background-color: lightgreen; border-collapse: collapse; text-align: center;">
     <tr>
@@ -11,3 +12,9 @@
     </tr>
     {% endfor %}
 </table>
+{% else %}
+<p style="text-align: center; margin-top: 20px; font-size: 18px;">
+    No trending topics found because the course was likely NOT-OFFERED THIS TERM.<br>
+    Please contact support if you think there is some discrepancy.
+</p>
+{% endif %}
