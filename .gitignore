@@ -9,3 +9,4 @@ data/*
 temp.html
 TRASH/*
 *pycache*
+*log*
