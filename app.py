@@ -24,7 +24,6 @@ from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")  # secret key to secure cookies and session data.
 oauth = OAuth(app) # OAuth is a way to safely let users login using Google without handling their passwords yourself
-# last_refresh_date = "20-05-2025" # For testing purposes; REMOVE IN FINAL DEPLOYMENT
 
 
 
@@ -46,18 +45,21 @@ def load_id_username_mapping():
 # DATA VARIABLES
 def get_all_data():
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping
+    time1 = time.time()
     user_actions_dictionaries = load_user_actions_dictionaries()
+    time2= time.time()
     df_map_category_to_id = load_df_map_category_to_id()
+    time3 = time.time()
     id_username_mapping = load_id_username_mapping()
+    time4 = time.time()
+    """with open("time_log.txt", "a") as f: # REMOVE IN FINAL DEPLOYMENT
+        f.write(f"\n\n\n****************************************\n\n\nTime taken to load user_actions_dictionaries: {round(time2 - time1, 2)} seconds\nTime taken to load df_map_category_to_id: {round(time3 - time2, 2)} seconds\nTime taken to load id_username_mapping: {round(time4 - time3, 2)} seconds\nOverall time taken to load all data: {round(time4 - time1, 2)} seconds\n")"""
     # id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE
 
 def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
-    print("INSIDE REFRESH FUNCTION")
     today = datetime.now().strftime("%d-%m-%Y")
-    print(f"Today's date is: {today}")
     trimester_corresponding_to_today = get_current_trimester()
-    print(f"Trimester corresponding to today is: {trimester_corresponding_to_today}")
     trimester_data_to_be_removed = get_previous_trimesters(trimester_corresponding_to_today)[2] # For example, if today's trimester = "t2-2025", then DELETE any data corresponding to "t3-2024"    
     user_actions_dictionaries.pop(trimester_data_to_be_removed, None) # Remove the data, without raising eny errors
     print("User actions dictionaries keys: ", user_actions_dictionaries.keys())
@@ -69,12 +71,12 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
             continue # REMOVE IN FINAL DEPLOYMENT
         category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
         if category_name not in user_actions_dictionaries[trimester_corresponding_to_today]:
-            print(f"{category_name} not found in user_actions_dictionaries for trimester {trimester_corresponding_to_today}")
+            print(f"Inside refresh function for date = {today}\n{category_name} not found in user_actions_dictionaries for trimester {trimester_corresponding_to_today}")
             continue
         query_params_for_103 = {"category_id": str(category_id), "start_date": last_refresh_date, "end_date": today}
-        print(f"Now we will execute query 103 for {category_name} with params: {query_params_for_103}")
+
         latest_user_actions_df = execute_query_103(103, query_params=query_params_for_103) # This is the data between last_refresh_date and today
-        print(f"Latest user actions dataframe for {category_name} has {len(latest_user_actions_df)} rows")
+        print(f"Inside refresh function for date = {today}\nLatest user actions dataframe for {category_name} has {len(latest_user_actions_df)} rows")
         if not latest_user_actions_df.empty: # Modify existing data iff there is some change since last update
 
             # Now append this latest user_actions_df to the existing user_actions_df, and DROP the duplicate rows
@@ -82,15 +84,20 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
             new_user_actions_df = pd.concat([existing_user_actions_df, latest_user_actions_df]).drop_duplicates()
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"] = new_user_actions_df
 
+            latest_unique_topic_ids = latest_user_actions_df[latest_user_actions_df["target_post_id"] == -1]
+
             # Now calculate the scores dataframe using new_user_actions_df
             new_raw_metrics_dataframe = create_raw_metrics_dataframe(new_user_actions_df)
             new_unnormalized_scores_df = create_unnormalized_scores_dataframe(new_raw_metrics_dataframe)
             new_log_normalized_scores_df = create_log_normalized_scores_dataframe(new_raw_metrics_dataframe)
+            updated_unique_topic_ids = (user_actions_dictionaries[trimester_corresponding_to_today][category_name]["unique_topic_ids"]).append(latest_unique_topic_ids)
 
             # Now assign the newly created dataframes to the original user_actions_dictionaries
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["raw_metrics"] = new_raw_metrics_dataframe
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["unnormalized_scores"] = new_unnormalized_scores_df
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["log_normalized_scores"] = new_log_normalized_scores_df
+            user_actions_dictionaries[trimester_corresponding_to_today][category_name]["unique_topic_ids"] = list(set(updated_unique_topic_ids))
+            
 
     # Updating data for overall engagement
     query_params_for_102 = {"start_date": last_refresh_date, "end_date": today}
@@ -288,13 +295,12 @@ def most_frequent_first_responders(course_name):
     try:
         current_term = get_current_trimester() # For example, "t1-2025"
         course_name = course_name.replace("-", "_").replace(":","_").lower()
-        print(course_name,"\n",user_actions_dictionaries[current_term].keys())
         # Finding most-frequent first-responders
         unique_topics = user_actions_dictionaries[current_term][course_name]["unique_topic_ids"]
         # most_freq_first_responders_list = user_actions_dictionaries[current_term][course_name]["most_frequent_first_responder"] # This is currently a list of tuples; we will render it as a table on the frontend
-        most_freq_first_responders_list = get_top_10_first_responders(tuple(unique_topics))
+        most_freq_first_responders_list = get_top_10_first_responders(tuple(unique_topics), course_name)
     except Exception as e:
-        most_freq_first_responders_list = [("Couldn't fetch the response.","Please contact support if issue persists")]
+        most_freq_first_responders_list = []
         print(f"Encountered an error {e} while finding most_frequent_first_responders")
     return render_template("partials/first_responders_table.html", most_freq_first_responders=most_freq_first_responders_list, current_term=current_term)
 
@@ -339,14 +345,21 @@ def most_trending_topics(course_name):
     Then it fetches the recent topics using the fetch_recent_topics function and computes the trending scores using the compute_trending_scores function.
     Finally, it renders the trending topics table using the trending_scores.
     """
+    course_name = course_name.replace("-", " ").replace("_"," ")
+    slug, course_id = df_map_category_to_id.loc[df_map_category_to_id["name"].str.lower()==course_name, ["slug", "category_id"]].iloc[0]
     try:
-        course_name = course_name.replace("-", " ").replace("_"," ")
-        slug, course_id = df_map_category_to_id.loc[df_map_category_to_id["name"].str.lower()==course_name, ["slug", "category_id"]].iloc[0]
-        trending_topics = fetch_recent_topics(slug=slug, id=course_id) # ADD the args later
-        trending_scores = compute_trending_scores(trending_topics)
-        return render_template("partials/trending_topics_table.html", trending_scores=trending_scores, error=False)
+        trending_topics = fetch_recent_topics(slug=slug, id=course_id) # Step 1: Fetch recent topics for the course
     except Exception as e:
+        print(f"Error fetching recent topics for course {course_name}: ERROR = {e}")
         return render_template("partials/trending_topics_table.html", trending_scores=[], error=True)
+    
+    try:
+        trending_scores = compute_trending_scores(trending_topics) # Step 2: Compute trending scores for the fetched topics
+    except Exception as e:
+        print(f"Error inside function `most_trending_topics` at step #2 for course {course_name}: ERROR = {e}")
+        return render_template("partials/trending_topics_table.html", trending_scores=[], error=True)
+    
+    return render_template("partials/trending_topics_table.html", trending_scores=trending_scores, error=False)
 
 if __name__ == '__main__':
     # Initial load
