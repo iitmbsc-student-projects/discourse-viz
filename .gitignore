@@ -1,5 +1,7 @@
 ./env/*
 myenv/*
+venv/*
+*.env
 *yaml
 *csv
 *xlsx

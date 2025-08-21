@@ -6,7 +6,7 @@ import pandas as pd
 API_KEY_GLOBAL= os.environ.get('API_KEY')
 
 def execute_query_103(query_id, query_params=None): # for course-specific user actions
-    # print("Now inside execute_query_103 for course-specific user actions")
+    print("Now inside execute_query_103 for course-specific user actions")
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
     GROUP_NAME = "discourse_analytics"
     API_USERNAME = 'shubhamG'
@@ -79,7 +79,7 @@ def execute_query_103(query_id, query_params=None): # for course-specific user a
 
 # @lru_cache(maxsize=None, typed=False)
 def execute_query_107(query_id, query_params=None): # fetch category_ids
-    # print("RIGHT NOW INSIDE QUERY 107 FOR FETCHING CATEGORY_IDS")
+    print("RIGHT NOW INSIDE QUERY 107 FOR FETCHING CATEGORY_IDS")
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
     GROUP_NAME = "discourse_analytics"
     API_USERNAME = 'shubhamG'
@@ -164,7 +164,7 @@ def execute_query_107(query_id, query_params=None): # fetch category_ids
 
 # @lru_cache(maxsize=None, typed=False)
 def execute_query_108(query_id, query_params=None): # userid-name mapping
-    # print("Now inside execute_query_108 for userid-name mapping")
+    print("Now inside execute_query_108 for userid-name mapping")
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
     GROUP_NAME = "discourse_analytics"
     API_USERNAME = 'shubhamG'
@@ -235,7 +235,7 @@ def execute_query_108(query_id, query_params=None): # userid-name mapping
 
 
 def execute_query_102(query_id, query_params=None): # overall discourse engagement
-    # print("Now inside execute_query_102 for overall discourse engagement")
+    print("Now inside execute_query_102 for overall discourse engagement")
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
     GROUP_NAME = "discourse_analytics"
     API_USERNAME = 'shubhamG'
