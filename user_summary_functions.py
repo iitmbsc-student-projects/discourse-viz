@@ -174,11 +174,10 @@ def fetch_recent_topics(slug = "stats2-kb", id=24):
         base_url = f"https://discourse.onlinedegree.iitm.ac.in/c/{slug}/{id}.json?page={page}"
         resp = requests.get(base_url, headers = headers)
         if resp.status_code != 200:
-            print(f"Failed to fetch page {page}\n {resp.text}")
+            resp.raise_for_status() # Raise an HTTPError for bad responses
             break
         info_dict = resp.json()
         topics = info_dict.get("topic_list", {}).get("topics", [])
-        print(f"len topics = {len(topics)}")
 
         for topic in topics:
             created_at = topic.get("created_at")
