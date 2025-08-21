@@ -9,7 +9,7 @@ from subject_wise_engagement.execute_query import execute_query_107
 # from execute_query import execute_query_107
 
 
-
+start = time.time()
 df_map_category_to_id = execute_query_107(query_id=107,query_params=None)
 
 irrelevant_categories = """Course LxIs
@@ -32,6 +32,9 @@ electronic_product_design"""
 irrelevant_categories = irrelevant_categories.replace("\n",",").split(",")
 # Remove rows where "name" column doesn't have any of the irrelevant categories
 df_map_category_to_id = df_map_category_to_id[~df_map_category_to_id["name"].isin(irrelevant_categories)]
-
+end = time.time()
+# print(f"Time taken to fetch category IDs: {round(end - start, 2)} seconds")
+# with open("time_log.txt", "a") as f:
+#     f.write(f"\n\n***********Time taken to df_map_category_to_id\n\n****************\n\n: {round(end - start, 2)} seconds\n")
 if __name__ == "__main__":
     print(df_map_category_to_id.head())

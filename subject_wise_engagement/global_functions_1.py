@@ -222,8 +222,8 @@ def get_overall_engagement_df(query_params):
 
 
 @lru_cache(maxsize=256)
-def get_top_10_first_responders(topic_list):
-    
+def get_top_10_first_responders(topic_list, course_name):
+    print("Inside the get_top_10_first_responders function")
     most_frequent_users = {}
     for t in topic_list: # BOTTLENECK OF THIS FUNCTION
         try:
@@ -238,10 +238,13 @@ def get_top_10_first_responders(topic_list):
                     username = post["username"] # Find the username of the first responder
                     most_frequent_users[username] = most_frequent_users.get(username,0)+1 # Increment the frequency of first-responder
             time.sleep(1) # to avoid hitting the rate limit of the Discourse API
+        except KeyError as k:
+            print(f"Encountered KEY ERROR {k} when trying to find details for the topic {t} for the course name {course_name}")
+            return []
         except Exception as e:
             print(f"Encountered an ERROR {e} when trying to find details for the topic {t}")
             continue
-    if not most_frequent_users: return [("Couldn't fetch the response.","Please contact support if issue persists")]
+    if not most_frequent_users: return []
 
     sorted_users = sorted(most_frequent_users.items(), key=lambda x: x[1], reverse=True)
     top_10_first_responders = sorted_users[:10] # Note that this is a list of tuples in format (username, count)
