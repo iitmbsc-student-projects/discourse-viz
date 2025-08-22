@@ -67,8 +67,6 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     # Creating new data for each course
     for row in df_map_category_to_id.itertuples():
         category_id = row.category_id
-        if not category_id==53: 
-            continue # REMOVE IN FINAL DEPLOYMENT
         category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
         if category_name not in user_actions_dictionaries[trimester_corresponding_to_today]:
             print(f"Inside refresh function for date = {today}\n{category_name} not found in user_actions_dictionaries for trimester {trimester_corresponding_to_today}")
