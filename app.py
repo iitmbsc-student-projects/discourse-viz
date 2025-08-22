@@ -142,6 +142,40 @@ diploma_data_science_courses.sort()
 diploma_programming_courses.sort()
 foundation_courses.sort()
 
+def get_top_respondents_from_useractions_df(course): # Put this function in processors.py file in new structure
+    term = get_current_trimester()
+    df = user_actions_dictionaries[term][course]["user_actions_df"]
+    # Convert created_at to datetime for sorting
+    df['created_at'] = pd.to_datetime(df['created_at'])
+
+    # Step 1: Get all new topics
+    new_topics = df[df['action_name'] == 'new_topic'][['target_topic_id', 'topic_title', 'created_at']]
+
+    # Step 2: For each topic, find the first reply/response after the new_topic timestamp
+    first_responders = []
+
+    for _, row in new_topics.iterrows():
+        topic_id = row['target_topic_id']
+        topic_time = row['created_at']
+        topic_title = row['topic_title']
+        
+        # Get replies/responses for this topic AFTER the topic creation time
+        replies = df[(df['target_topic_id'] == topic_id) & 
+                    (df['action_name'].isin(['reply', 'response'])) &
+                    (df['created_at'] > topic_time)]
+        
+        if not replies.empty:
+            first_reply = replies.sort_values('created_at').iloc[0]
+            first_responders.append((topic_title, first_reply['acting_username'], first_reply['created_at']))
+
+    # Convert to DataFrame
+    first_responders_df = pd.DataFrame(first_responders, columns=['topic_title', 'first_responder', 'response_time'])
+
+    # Count most frequent first responders
+    most_freq_first_responders = first_responders_df['first_responder'].value_counts().head(10)
+    most_freq_first_responders_list = list(most_freq_first_responders.items())
+    return most_freq_first_responders_list
+
 @lru_cache(maxsize=256)
 def generate_chart_for_overall_engagement(term): # can add a cache to this function, but it is not necessary because the calculations are already fast
     unnormalized_df = user_actions_dictionaries[term]["overall"]["unnormalized_scores"]
@@ -296,7 +330,7 @@ def most_frequent_first_responders(course_name):
         # Finding most-frequent first-responders
         unique_topics = user_actions_dictionaries[current_term][course_name]["unique_topic_ids"]
         # most_freq_first_responders_list = user_actions_dictionaries[current_term][course_name]["most_frequent_first_responder"] # This is currently a list of tuples; we will render it as a table on the frontend
-        most_freq_first_responders_list = get_top_10_first_responders(tuple(unique_topics), course_name)
+        most_freq_first_responders_list = get_top_respondents_from_useractions_df(course_name)
     except Exception as e:
         most_freq_first_responders_list = []
         print(f"Encountered an error {e} while finding most_frequent_first_responders")
@@ -367,7 +401,7 @@ if __name__ == '__main__':
     scheduler = BackgroundScheduler()
     current_hour, current_minute = datetime.now().hour, datetime.now().minute # REMOVE THIS IN FINAL DEPLOYMENT
     # print(f"Current hour: {current_hour}, Current minute: {current_minute}") # REMOVE THIS IN FINAL DEPLOYMENT
-    scheduler.add_job(refresh_all_data, 'cron', hour=1, minute=0) # refresh data every day at 1 minute past the current hour
+    scheduler.add_job(refresh_all_data, 'cron', hour=1, minute=0) # refresh data every day at 1am
     scheduler.start()
 
     app.run(host='0.0.0.0', 
