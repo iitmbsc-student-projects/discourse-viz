@@ -5,14 +5,14 @@ import pandas as pd
 from functools import lru_cache # This is used to cache the results of the functions
 from markupsafe import Markup # This is used to safely render HTML content
 from apscheduler.schedulers.background import BackgroundScheduler # This is used to schedule the daily refresh of the data
-from datetime import datetime # This is used to get the current date and time
+from datetime import datetime, timedelta # This is used to get the current date and time
 
 # Imports from other files
-from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users, fetch_recent_topics, compute_trending_scores
+from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users
 
 from subject_wise_engagement.data_dicts import get_all_data_dicts
 
-from subject_wise_engagement.global_functions_1 import get_current_trimester, get_top_10_first_responders, create_weekwise_engagement, get_previous_trimesters, sanitize_filepath, create_raw_metrics_dataframe, create_unnormalized_scores_dataframe, create_log_normalized_scores_dataframe, weights_dict_for_overall_engaagement, create_log_normalized_scores_dataframe_for_all_users, create_unnormalized_scores_dataframe_for_all_users
+from subject_wise_engagement.global_functions_1 import get_current_trimester, create_weekwise_engagement, get_previous_trimesters, sanitize_filepath, create_raw_metrics_dataframe, create_unnormalized_scores_dataframe, create_log_normalized_scores_dataframe, weights_dict_for_overall_engaagement, create_log_normalized_scores_dataframe_for_all_users, create_unnormalized_scores_dataframe_for_all_users
 
 from subject_wise_engagement.execute_query import execute_query_108, execute_query_103, execute_query_102
 
@@ -45,16 +45,15 @@ def load_id_username_mapping():
 # DATA VARIABLES
 def get_all_data():
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping
-    time1 = time.time()
+    # time1 = time.time()
     user_actions_dictionaries = load_user_actions_dictionaries()
-    time2= time.time()
+    # time2= time.time()
     df_map_category_to_id = load_df_map_category_to_id()
-    time3 = time.time()
+    # time3 = time.time()
     id_username_mapping = load_id_username_mapping()
-    time4 = time.time()
+    # time4 = time.time()
     """with open("time_log.txt", "a") as f: # REMOVE IN FINAL DEPLOYMENT
         f.write(f"\n\n\n****************************************\n\n\nTime taken to load user_actions_dictionaries: {round(time2 - time1, 2)} seconds\nTime taken to load df_map_category_to_id: {round(time3 - time2, 2)} seconds\nTime taken to load id_username_mapping: {round(time4 - time3, 2)} seconds\nOverall time taken to load all data: {round(time4 - time1, 2)} seconds\n")"""
-    # id_username_mapping = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE
 
 def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
@@ -82,21 +81,16 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
             new_user_actions_df = pd.concat([existing_user_actions_df, latest_user_actions_df]).drop_duplicates()
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"] = new_user_actions_df
 
-            latest_unique_topic_ids = latest_user_actions_df[latest_user_actions_df["target_post_id"] == -1]
-
             # Now calculate the scores dataframe using new_user_actions_df
             new_raw_metrics_dataframe = create_raw_metrics_dataframe(new_user_actions_df)
             new_unnormalized_scores_df = create_unnormalized_scores_dataframe(new_raw_metrics_dataframe)
             new_log_normalized_scores_df = create_log_normalized_scores_dataframe(new_raw_metrics_dataframe)
-            updated_unique_topic_ids = (user_actions_dictionaries[trimester_corresponding_to_today][category_name]["unique_topic_ids"]).append(latest_unique_topic_ids)
 
             # Now assign the newly created dataframes to the original user_actions_dictionaries
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["raw_metrics"] = new_raw_metrics_dataframe
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["unnormalized_scores"] = new_unnormalized_scores_df
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["log_normalized_scores"] = new_log_normalized_scores_df
-            user_actions_dictionaries[trimester_corresponding_to_today][category_name]["unique_topic_ids"] = list(set(updated_unique_topic_ids))
             
-
     # Updating data for overall engagement
     query_params_for_102 = {"start_date": last_refresh_date, "end_date": today}
     latest_raw_metrics_for_overall_engagement = execute_query_102(102, query_params = query_params_for_102)
@@ -117,8 +111,6 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["log_normalized_scores"] = new_log_normalized_scores_dataframe_all_users
 
     last_refresh_date = today # Update the last refresh date to today
-    get_top_10_first_responders.cache_clear() # Clear cache to avoid stale results
-    fetch_recent_topics.cache_clear()
     print(f"Data refreshed successfully for {trimester_corresponding_to_today} trimester. Last refresh date is now set to {last_refresh_date}.")
 
 
@@ -144,9 +136,11 @@ foundation_courses.sort()
 
 def get_top_respondents_from_useractions_df(course): # Put this function in processors.py file in new structure
     term = get_current_trimester()
-    df = user_actions_dictionaries[term][course]["user_actions_df"]
-    # Convert created_at to datetime for sorting
-    df['created_at'] = pd.to_datetime(df['created_at'])
+    df = (user_actions_dictionaries[term][course]["user_actions_df"]).copy(deep=True) # Make a copy to avoid modifying the original dataframe
+    if df.empty:
+        raise ValueError("The user actions dataframe is empty, cannot compute top respondents.")
+    
+    df['created_at'] = pd.to_datetime(df['created_at']) # Convert created_at to datetime for sorting
 
     # Step 1: Get all new topics
     new_topics = df[df['action_name'] == 'new_topic'][['target_topic_id', 'topic_title', 'created_at']]
@@ -175,6 +169,74 @@ def get_top_respondents_from_useractions_df(course): # Put this function in proc
     most_freq_first_responders = first_responders_df['first_responder'].value_counts().head(10)
     most_freq_first_responders_list = list(most_freq_first_responders.items())
     return most_freq_first_responders_list
+
+def get_trending_topics_from_useractions_df(course): # Put this function in processors.py file in new structure
+    term = get_current_trimester()
+    df = (user_actions_dictionaries[term][course]["user_actions_df"]).copy() # Make a copy to avoid modifying the original dataframe
+    if df.empty:
+        raise ValueError("The user actions dataframe is empty, cannot compute trending topics.")
+    
+    # Convert created_at to datetime for sorting
+    df['created_at'] = pd.to_datetime(df['created_at'], format='mixed')  # Handles UTC & IST
+
+    # Define weights for actions
+    weights = {
+        'response': 0.5,
+        'like': 0.35,
+        'quote': 3,
+    }
+
+    # 1. Find topics created in the last 7 days
+    now = datetime.now()
+    seven_days_ago = now - timedelta(days=7)
+    seven_days_ago_utc = pd.Timestamp(seven_days_ago, tz='UTC')  # Convert to UTC
+    recent_topics = df[(df['action_name'] == 'new_topic') & (df['created_at'] >= seven_days_ago_utc)]
+    recent_topic_ids = set(recent_topics['target_topic_id'])
+
+    # 2. Filter actions for these topics (excluding 'new_topic')
+    recent_actions = df[(df['target_topic_id'].isin(recent_topic_ids)) &
+                        (df['action_name'].isin(weights.keys()))]
+
+    # 3. Group by topic and count actions
+    topic_action_counts = recent_actions.groupby(['target_topic_id', 'action_name']).size().unstack(fill_value=0)
+
+    # Preserve original counts before applying weights
+    counts_df = topic_action_counts.copy()
+
+    # 4. Compute raw scores using weights
+    for action, weight in weights.items():
+        if action in topic_action_counts.columns:
+            topic_action_counts[action] *= weight
+
+    topic_action_counts['raw_score'] = topic_action_counts.sum(axis=1)
+
+    # 5. Add topic creation time and title
+    topic_info = recent_topics.set_index('target_topic_id')[['topic_title', 'created_at']]
+    merged = topic_action_counts.merge(topic_info, left_index=True, right_index=True)
+
+    # 6. Normalize by age (in hours)
+    now_utc = pd.Timestamp(now, tz='UTC')
+    merged['hours_since_creation'] = (now_utc - merged['created_at']).dt.total_seconds() / 3600
+    merged['normalized_score'] = merged['raw_score'] / merged['hours_since_creation']
+
+    # Merge counts for final output
+    merged = merged.merge(counts_df, left_index=True, right_index=True, suffixes=('', '_count'))
+
+    # 7. Sort and get top 10
+    top_trending = merged.sort_values('normalized_score', ascending=False).head(10)
+
+    # Build final output list: (topic_id, topic_url, topic_title, response_count, like_count, quote_count)
+    top_trending_list = []
+    for topic_id, row in top_trending.iterrows():
+        url = f"https://discourse.onlinedegree.iitm.ac.in/t/{topic_id}"
+        topic_title = row['topic_title']
+        response_count = row.get('response', 0)
+        like_count = row.get('like', 0)
+        quote_count = row.get('quote', 0)
+        top_trending_list.append((topic_id, url, topic_title, int(response_count), int(like_count), int(quote_count)))
+
+
+    return top_trending_list
 
 @lru_cache(maxsize=256)
 def generate_chart_for_overall_engagement(term): # can add a cache to this function, but it is not necessary because the calculations are already fast
@@ -305,7 +367,7 @@ def top_users_chart(course_name, term):
         return top_10_users_chart.to_html()
     except Exception as e:
         print(f"Error in top_users_chart for course = {course_name}: {e}")
-        empty_chart = create_empty_chart_in_case_of_errors(message="Could not load top users chart")
+        empty_chart = create_empty_chart_in_case_of_errors(message="Could not load top users chart; the course might not have been offered")
         return empty_chart.to_html()
 
 # New endpoint that returns only the weekwise engagement chart
@@ -318,7 +380,7 @@ def weekwise_chart(course_name, term):
         return weekwise_engagement_chart.to_html()
     except Exception as e:
         print(f"Error in weekwise_chart for course = {course_name}: {e}")
-        empty_chart = create_empty_chart_in_case_of_errors(message="Could not load weekly engagement chart")
+        empty_chart = create_empty_chart_in_case_of_errors(message="Could not load weekly engagement chart; the course might not have been offered")
         return empty_chart.to_html()
 
 @app.route("/get_most_frequent_first_responders/<course_name>", methods = ["GET"])
@@ -327,13 +389,10 @@ def most_frequent_first_responders(course_name):
     try:
         current_term = get_current_trimester() # For example, "t1-2025"
         course_name = course_name.replace("-", "_").replace(":","_").lower()
-        # Finding most-frequent first-responders
-        unique_topics = user_actions_dictionaries[current_term][course_name]["unique_topic_ids"]
-        # most_freq_first_responders_list = user_actions_dictionaries[current_term][course_name]["most_frequent_first_responder"] # This is currently a list of tuples; we will render it as a table on the frontend
         most_freq_first_responders_list = get_top_respondents_from_useractions_df(course_name)
     except Exception as e:
         most_freq_first_responders_list = []
-        print(f"Encountered an error {e} while finding most_frequent_first_responders")
+        print(f"Encountered an error while finding most_frequent_first_responders: {e} ")
     return render_template("partials/first_responders_table.html", most_freq_first_responders=most_freq_first_responders_list, current_term=current_term)
 
 @app.route("/user_details/<user_name>", methods=["GET"]) # This route is invoked when user clicks on the "search" button on the "search_user" page
@@ -377,21 +436,13 @@ def most_trending_topics(course_name):
     Then it fetches the recent topics using the fetch_recent_topics function and computes the trending scores using the compute_trending_scores function.
     Finally, it renders the trending topics table using the trending_scores.
     """
-    course_name = course_name.replace("-", " ").replace("_"," ")
-    slug, course_id = df_map_category_to_id.loc[df_map_category_to_id["name"].str.lower()==course_name, ["slug", "category_id"]].iloc[0]
     try:
-        trending_topics = fetch_recent_topics(slug=slug, id=course_id) # Step 1: Fetch recent topics for the course
+        trending_scores = get_trending_topics_from_useractions_df(course_name)
+        return render_template("partials/trending_topics_table.html", trending_scores=trending_scores)
     except Exception as e:
-        print(f"Error fetching recent topics for course {course_name}: ERROR = {e}")
-        return render_template("partials/trending_topics_table.html", trending_scores=[], error=True)
+        return render_template("partials/trending_topics_table.html", trending_scores=[])
+
     
-    try:
-        trending_scores = compute_trending_scores(trending_topics) # Step 2: Compute trending scores for the fetched topics
-    except Exception as e:
-        print(f"Error inside function `most_trending_topics` at step #2 for course {course_name}: ERROR = {e}")
-        return render_template("partials/trending_topics_table.html", trending_scores=[], error=True)
-    
-    return render_template("partials/trending_topics_table.html", trending_scores=trending_scores, error=False)
 
 if __name__ == '__main__':
     # Initial load
@@ -399,8 +450,6 @@ if __name__ == '__main__':
 
     # Schedule daily refresh
     scheduler = BackgroundScheduler()
-    current_hour, current_minute = datetime.now().hour, datetime.now().minute # REMOVE THIS IN FINAL DEPLOYMENT
-    # print(f"Current hour: {current_hour}, Current minute: {current_minute}") # REMOVE THIS IN FINAL DEPLOYMENT
     scheduler.add_job(refresh_all_data, 'cron', hour=1, minute=0) # refresh data every day at 1am
     scheduler.start()
 
