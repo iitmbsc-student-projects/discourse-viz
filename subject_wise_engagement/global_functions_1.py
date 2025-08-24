@@ -146,18 +146,16 @@ def get_course_specific_dataframes(query_params):
     1. RAW METRICS: This dataframe simply shows the metrics of each user, e.g likes_given, topics_created etc, for that specific course
     2. UNNORMALIZED_SCORES DF: Sum of [ raw_metric*weightage ]
     3. LOG-NORMALIZED SCORE: Sum of [ log1p(raw_metric) * weightage ]
-    4. unique_topic_ids: List of unique topic-ids for that course in the time-frame (this is used to find the top 10 first responders)
     """
     query_params = dict(query_params)
     user_actions_df = execute_query_103(103, query_params)
-    unique_topic_ids = user_actions_df[user_actions_df["target_post_id"] == -1]["target_topic_id"].unique() # If target_post_id is -1, then it means this specific post is a new topic (and not a reply to any other post)
     if user_actions_df.empty:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), ["no topics as of because of very low discourse activity"] # Return 3 empty DFs + one list
     
     raw_metrics_df = create_raw_metrics_dataframe(user_actions_df)
     unnormalized_scores_df = create_unnormalized_scores_dataframe(raw_metrics_df)
     log_normalized_scores_df = create_log_normalized_scores_dataframe(raw_metrics_df)
-    return user_actions_df, raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df, unique_topic_ids
+    return user_actions_df, raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df
 
 # Assign the weights to the relevant columns. This can be changed as per the requirement.
 weights_dict_for_overall_engaagement = { 'likes_given': 0.4, # likes_given is also important
