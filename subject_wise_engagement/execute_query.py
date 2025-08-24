@@ -6,7 +6,7 @@ import pandas as pd
 API_KEY_GLOBAL= os.environ.get('API_KEY')
 
 def execute_query_103(query_id, query_params=None): # for course-specific user actions
-    print("Now inside execute_query_103 for course-specific user actions")
+    print("Inside query_103 for course-specific user actions | params:", query_params)
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
     GROUP_NAME = "discourse_analytics"
     API_USERNAME = 'shubhamG'
