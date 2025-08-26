@@ -11,4 +11,5 @@ data/*
 temp.html
 TRASH/*
 *pycache*
+__pycache__/
 *log*

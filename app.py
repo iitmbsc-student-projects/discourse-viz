@@ -45,15 +45,9 @@ def load_id_username_mapping():
 # DATA VARIABLES
 def get_all_data():
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping
-    # time1 = time.time()
     user_actions_dictionaries = load_user_actions_dictionaries()
-    # time2= time.time()
     df_map_category_to_id = load_df_map_category_to_id()
-    # time3 = time.time()
     id_username_mapping = load_id_username_mapping()
-    # time4 = time.time()
-    """with open("time_log.txt", "a") as f: # REMOVE IN FINAL DEPLOYMENT
-        f.write(f"\n\n\n****************************************\n\n\nTime taken to load user_actions_dictionaries: {round(time2 - time1, 2)} seconds\nTime taken to load df_map_category_to_id: {round(time3 - time2, 2)} seconds\nTime taken to load id_username_mapping: {round(time4 - time3, 2)} seconds\nOverall time taken to load all data: {round(time4 - time1, 2)} seconds\n")"""
 
 def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
@@ -239,14 +233,18 @@ def get_trending_topics_from_useractions_df(course): # Put this function in proc
     return top_trending_list
 
 @lru_cache(maxsize=256)
-def generate_chart_for_overall_engagement(term): # can add a cache to this function, but it is not necessary because the calculations are already fast
-    unnormalized_df = user_actions_dictionaries[term]["overall"]["unnormalized_scores"]
-    unnormalized_df = unnormalized_df[unnormalized_df["user_id"]>0]
-    top_10_users = pd.DataFrame(unnormalized_df.head(10))
-    # id_username_mapping = pd.read_csv("data/id_username_mapping.csv")
-    top_10_users = top_10_users.merge(id_username_mapping, on="user_id")
-    chart = create_stacked_bar_chart_for_overall_engagement(top_10_users, term=term)
-    return chart
+def generate_chart_for_overall_engagement(term):
+    try:
+        unnormalized_df = user_actions_dictionaries[term]["overall"]["unnormalized_scores"]
+        unnormalized_df = unnormalized_df[unnormalized_df["user_id"]>0]
+        top_10_users = pd.DataFrame(unnormalized_df.head(10))
+        # id_username_mapping = pd.read_csv("data/id_username_mapping.csv")
+        top_10_users = top_10_users.merge(id_username_mapping, on="user_id")
+        chart = create_stacked_bar_chart_for_overall_engagement(top_10_users, term=term)
+        return chart
+    except:
+        chart = create_empty_chart_in_case_of_errors(message= "The chart may not have been loaded properly, please wait for some time and then refresh. Contact support if issue persists.")
+        return chart
 
 @lru_cache(maxsize=256)
 def get_users_engagement_chart(course, user_list, term="t1-2025"):
