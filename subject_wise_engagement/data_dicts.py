@@ -29,7 +29,7 @@ def get_all_data_dicts():
             for row in df_map_category_to_id.itertuples(): # This loop is for finding course-specific dataframes for each term
                 try:
                     category_id = row.category_id
-                    if not (category_id==26 or category_id==27): continue # REMOVE FROM FINAL DEPLOYMENT
+                    # if not (category_id==26 or category_id==27): continue # REMOVE FROM FINAL DEPLOYMENT
                     category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
                     if category_name not in user_actions_dictionaries[key]:
                         user_actions_dictionaries[key][category_name] = {}
