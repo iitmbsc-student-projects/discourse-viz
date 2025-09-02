@@ -39,8 +39,8 @@ def load_df_map_category_to_id():
 
 def load_id_username_mapping():
     from subject_wise_engagement.execute_query import execute_query_108
-    df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT
-    # df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
+    # df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT
+    df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
     return df
 
 def init_minimal_data():
