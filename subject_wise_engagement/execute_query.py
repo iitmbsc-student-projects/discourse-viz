@@ -77,7 +77,6 @@ def execute_query_103(query_id, query_params=None): # for course-specific user a
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
 
-# @lru_cache(maxsize=None, typed=False)
 def execute_query_107(query_id, query_params=None): # fetch category_ids
     print("RIGHT NOW INSIDE QUERY 107 FOR FETCHING CATEGORY_IDS")
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
@@ -162,7 +161,6 @@ def execute_query_107(query_id, query_params=None): # fetch category_ids
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
 
-# @lru_cache(maxsize=None, typed=False)
 def execute_query_108(query_id, query_params=None): # userid-name mapping
     print("Now inside execute_query_108 for userid-name mapping")
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"

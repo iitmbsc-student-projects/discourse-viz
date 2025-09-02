@@ -137,8 +137,6 @@ def create_log_normalized_scores_dataframe(raw_metrics_df):
     out["z_score"] = out["z_score"].round(2)
     return out
 
-
-# @lru_cache(maxsize=None)
 def get_course_specific_dataframes(query_params):
     """
     Calls the query_103 using parameters {category_id, start_date, end_date} to get user_actions_df which is then used to create and return 3 dataframes:
@@ -198,7 +196,6 @@ def create_log_normalized_scores_dataframe_for_all_users(raw_metrics_df):
     log_normalized_dataframe["z_score"] = round((log_normalized_dataframe["initial_score"] - log_normalized_dataframe["initial_score"].mean()) / log_normalized_dataframe["initial_score"].std(),2)
     return log_normalized_dataframe.sort_values(by="z_score",ascending=False)
 
-# @lru_cache(maxsize=None)
 def get_overall_engagement_df(query_params):
     """
     This function is used to get the overall engagement dataframe for all users.
@@ -219,7 +216,6 @@ def get_overall_engagement_df(query_params):
 
 
 
-@lru_cache(maxsize=256)
 def get_top_10_first_responders(topic_list, course_name):
     print("Inside the get_top_10_first_responders function")
     most_frequent_users = {}
