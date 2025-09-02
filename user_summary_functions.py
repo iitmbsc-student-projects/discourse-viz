@@ -131,7 +131,6 @@ def create_stacked_bar_chart(raw_metrics, subject):
 
         return chart
 
-@lru_cache(maxsize=128)
 def fetch_recent_topics(slug = "stats2-kb", id=24):
     """
     Fetches recent discussion topics from a specified Discourse category within a defined time window (default: last 7 days).
