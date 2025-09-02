@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify
 from authlib.integrations.flask_client import OAuth
-import os, json, time
+import os, json, time, threading
 import pandas as pd 
 from functools import lru_cache # This is used to cache the results of the functions
 from markupsafe import Markup # This is used to safely render HTML content
@@ -24,6 +24,7 @@ from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")  # secret key to secure cookies and session data.
 oauth = OAuth(app) # OAuth is a way to safely let users login using Google without handling their passwords yourself
+user_actions_loaded = False
 
 
 
@@ -42,12 +43,34 @@ def load_id_username_mapping():
     # df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
     return df
 
-# DATA VARIABLES
-def get_all_data():
-    global user_actions_dictionaries, df_map_category_to_id, id_username_mapping
-    df_map_category_to_id = load_df_map_category_to_id()
-    id_username_mapping = load_id_username_mapping()
-    user_actions_dictionaries = load_user_actions_dictionaries()
+def init_minimal_data():
+    global df_map_category_to_id, id_username_mapping, user_actions_dictionaries
+    df_map_category_to_id = load_df_map_category_to_id()  # ~1 min
+    id_username_mapping = load_id_username_mapping()      # ~1 min
+
+    # Create empty placeholders based on category IDs and current terms
+    current_and_prev_terms = get_previous_trimesters(get_current_trimester())[:2]
+    user_actions_dictionaries = {
+        term: {
+            sanitize_filepath(row.name).lower(): {
+                "user_actions_df": pd.DataFrame(),
+                "raw_metrics": pd.DataFrame(),
+                "unnormalized_scores": pd.DataFrame(),
+                "log_normalized_scores": pd.DataFrame()
+            } for row in df_map_category_to_id.itertuples()
+        }
+        for term in current_and_prev_terms
+    }
+    print(f"Keys in user_actions_dictionaries after minimal init: {list(user_actions_dictionaries.keys())}")
+
+def background_load_user_actions():
+    global user_actions_dictionaries, user_actions_loaded
+    print("Before background load:", user_actions_loaded)
+    print("Starting background loading of user_actions_dictionaries...")
+    user_actions_dictionaries = load_user_actions_dictionaries()  # ~20 min
+    user_actions_loaded = True
+    print("Background loading completed.")
+    print("After background load:", user_actions_loaded)
 
 def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
@@ -232,7 +255,7 @@ def get_trending_topics_from_useractions_df(course): # Put this function in proc
 
     return top_trending_list
 
-@lru_cache(maxsize=256)
+
 def generate_chart_for_overall_engagement(term):
     try:
         unnormalized_df = user_actions_dictionaries[term]["overall"]["unnormalized_scores"]
@@ -246,7 +269,6 @@ def generate_chart_for_overall_engagement(term):
         chart = create_empty_chart_in_case_of_errors(message= "The chart may not have been loaded properly, please wait for some time and then refresh. Contact support if issue persists.")
         return chart
 
-@lru_cache(maxsize=256)
 def get_users_engagement_chart(course, user_list, term="t1-2025"):
     """
     Returns the course-specific chart of a specific set of users; uses unnormalised dataframe
@@ -260,7 +282,6 @@ def get_users_engagement_chart(course, user_list, term="t1-2025"):
     else:
         return create_empty_chart_in_case_of_errors(message="None of the users from the list was found, please provide a new set of users.")
 
-@lru_cache(maxsize=256)
 def get_top_10_users_chart(term, subject):
     """
     Returns the course & term specific chart of top-10 most active users; uses log-normalised dataframe
@@ -289,8 +310,15 @@ def index():
                            overall_discourse_charts=list(user_actions_dictionaries.keys()), # LIST of terms (current and past)
                            latest_chart=latest_term)
 
+@app.route('/loading-status')
+def loading_status():
+    global user_actions_loaded
+    return {"loaded": user_actions_loaded}
+
 @app.route('/get_chart') # Used to get the Overall Discourse Charts on the home page
 def get_overall_discourse_chart():
+    if not user_actions_loaded:
+        return "<h3 style='color:violet'>Data is still loading. Once the background data fetching is completed, the chart will automatically be rendered.<br>Kindly wait for a few minutes!</h3>"
     term = request.args.get('chart')
     if term:
         # Generate the chart for the selected term
@@ -444,7 +472,9 @@ def most_trending_topics(course_name):
 
 if __name__ == '__main__':
     # Initial load
-    get_all_data()
+    # get_all_data()
+    init_minimal_data()  # Blocking: ~2 mins
+    threading.Thread(target=background_load_user_actions, daemon=True).start()
 
     # Schedule daily refresh
     scheduler = BackgroundScheduler()
