@@ -73,20 +73,25 @@
         color: #0056b3;
         font-size: 22px;
     }
+
     #selected-chart {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    margin-top: 10px; /* Reduced from 20px */
-    min-height: auto; /* Remove fixed 800px height */
-    padding: 10px 0; /* Optional: small padding for breathing room */
-}
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        margin-top: 10px;
+        /* Reduced from 20px */
+        min-height: auto;
+        /* Remove fixed 800px height */
+        padding: 10px 0;
+        /* Optional: small padding for breathing room */
+    }
 
 
-#selected-chart h2 {
-    margin-bottom: 10px; /* Reduce spacing between heading and chart */
-}
+    #selected-chart h2 {
+        margin-bottom: 10px;
+        /* Reduce spacing between heading and chart */
+    }
 
     iframe {
         max-width: 100%;
@@ -173,8 +178,8 @@
         <select id="chart-select" name="chart" onchange="loadChart()">
             <option value="">Select a chart</option>
             {% for chart in overall_discourse_charts %}
-            <option value="{{ chart }}" 
-                {% if latest_term==chart or (not latest_term and loop.first) %}selected{% endif %}>
+            <option value="{{ chart }}" {% if latest_term==chart or (not latest_term and loop.first) %}selected{% endif
+                %}>
                 {{ chart.replace('_', ' ').upper() }}
             </option>
             {% endfor %}
@@ -192,92 +197,110 @@
 </div>
 
 <script>
-    function loadChart() {
-    const chartSelect = document.getElementById('chart-select');
-    let selectedChart = chartSelect.value;
-    
-    // If no chart is selected, select the first available option
-    if (!selectedChart && chartSelect.options.length > 1) {
-        chartSelect.selectedIndex = 1; // Skip the "Select a chart" option
-        selectedChart = chartSelect.value;
-    }
-    
-    console.log('Loading chart:', selectedChart);
-
-    if (selectedChart) {
-        fetch(`/get_chart?chart=${selectedChart}`)
-            .then(response => response.text())
-            .then(html => {
-                const chartContainer = document.getElementById('chart-container');
-
-                // Clear the container first
-                chartContainer.innerHTML = html;
-
-                // Execute external scripts first, then inline scripts
-                const scripts = chartContainer.querySelectorAll('script');
-                const externalScripts = [];
-                const inlineScripts = [];
-
-                // Separate external and inline scripts
-                scripts.forEach(script => {
-                    if (script.src) {
-                        externalScripts.push(script);
-                    } else {
-                        inlineScripts.push(script);
-                    }
-                });
-
-                // Load external scripts first
-                let loadedScripts = 0;
-                const totalExternalScripts = externalScripts.length;
-
-                function executeInlineScripts() {
-                    // Execute inline scripts after external scripts are loaded
-                    inlineScripts.forEach(oldScript => {
-                        const newScript = document.createElement('script');
-                        newScript.textContent = oldScript.textContent;
-                        oldScript.parentNode.replaceChild(newScript, oldScript);
-                    });
-                }
-
-                if (totalExternalScripts === 0) {
-                    // No external scripts, execute inline scripts immediately
-                    executeInlineScripts();
+    function checkLoadingStatus() {
+        fetch('/loading-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.loaded) {
+                    console.log("Data fully loaded. Refreshing chart...");
+                    loadChart(); // Refresh the chart when data is ready
+                    clearInterval(statusInterval); // Stop polling
                 } else {
-                    // Load external scripts first
-                    externalScripts.forEach(oldScript => {
-                        const newScript = document.createElement('script');
-                        newScript.src = oldScript.src;
-                        newScript.async = false;
-                        
-                        newScript.onload = () => {
-                            loadedScripts++;
-                            if (loadedScripts === totalExternalScripts) {
-                                // All external scripts loaded, now execute inline scripts
-                                executeInlineScripts();
-                            }
-                        };
-                        
-                        newScript.onerror = () => {
-                            console.error('Failed to load script:', oldScript.src);
-                            loadedScripts++;
-                            if (loadedScripts === totalExternalScripts) {
-                                executeInlineScripts();
-                            }
-                        };
-                        
-                        oldScript.parentNode.replaceChild(newScript, oldScript);
-                    });
+                    console.log("Data still loading...");
                 }
             })
-            .catch(error => {
-                console.error('Error loading chart:', error);
-                document.getElementById('chart-container').innerHTML = '<h3>Error loading chart. Please try again.</h3>';
-            });
-    } else {
-        document.getElementById('chart-container').innerHTML = '<h3>Please select a chart.</h3>';
+            .catch(error => console.error('Error checking loading status:', error));
     }
-}
+
+    // Poll every 10 seconds
+    const statusInterval = setInterval(checkLoadingStatus, 10000);
+
+    function loadChart() {
+        const chartSelect = document.getElementById('chart-select');
+        let selectedChart = chartSelect.value;
+
+        // If no chart is selected, select the first available option
+        if (!selectedChart && chartSelect.options.length > 1) {
+            chartSelect.selectedIndex = 1; // Skip the "Select a chart" option
+            selectedChart = chartSelect.value;
+        }
+
+        console.log('Loading chart:', selectedChart);
+
+        if (selectedChart) {
+            fetch(`/get_chart?chart=${selectedChart}`)
+                .then(response => response.text())
+                .then(html => {
+                    const chartContainer = document.getElementById('chart-container');
+
+                    // Clear the container first
+                    chartContainer.innerHTML = html;
+
+                    // Execute external scripts first, then inline scripts
+                    const scripts = chartContainer.querySelectorAll('script');
+                    const externalScripts = [];
+                    const inlineScripts = [];
+
+                    // Separate external and inline scripts
+                    scripts.forEach(script => {
+                        if (script.src) {
+                            externalScripts.push(script);
+                        } else {
+                            inlineScripts.push(script);
+                        }
+                    });
+
+                    // Load external scripts first
+                    let loadedScripts = 0;
+                    const totalExternalScripts = externalScripts.length;
+
+                    function executeInlineScripts() {
+                        // Execute inline scripts after external scripts are loaded
+                        inlineScripts.forEach(oldScript => {
+                            const newScript = document.createElement('script');
+                            newScript.textContent = oldScript.textContent;
+                            oldScript.parentNode.replaceChild(newScript, oldScript);
+                        });
+                    }
+
+                    if (totalExternalScripts === 0) {
+                        // No external scripts, execute inline scripts immediately
+                        executeInlineScripts();
+                    } else {
+                        // Load external scripts first
+                        externalScripts.forEach(oldScript => {
+                            const newScript = document.createElement('script');
+                            newScript.src = oldScript.src;
+                            newScript.async = false;
+
+                            newScript.onload = () => {
+                                loadedScripts++;
+                                if (loadedScripts === totalExternalScripts) {
+                                    // All external scripts loaded, now execute inline scripts
+                                    executeInlineScripts();
+                                }
+                            };
+
+                            newScript.onerror = () => {
+                                console.error('Failed to load script:', oldScript.src);
+                                loadedScripts++;
+                                if (loadedScripts === totalExternalScripts) {
+                                    executeInlineScripts();
+                                }
+                            };
+
+                            oldScript.parentNode.replaceChild(newScript, oldScript);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading chart:', error);
+                    document.getElementById('chart-container').innerHTML = '<h3>Error loading chart. Please try again.</h3>';
+                });
+        } else {
+            document.getElementById('chart-container').innerHTML = '<h3>Please select a chart.</h3>';
+        }
+    }
     // Load the default chart on page load
     window.onload = loadChart;
 
