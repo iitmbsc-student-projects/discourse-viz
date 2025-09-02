@@ -38,16 +38,16 @@ def load_df_map_category_to_id():
 
 def load_id_username_mapping():
     from subject_wise_engagement.execute_query import execute_query_108
-    # df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT
-    df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
+    df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT
+    # df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
     return df
 
 # DATA VARIABLES
 def get_all_data():
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping
-    user_actions_dictionaries = load_user_actions_dictionaries()
     df_map_category_to_id = load_df_map_category_to_id()
     id_username_mapping = load_id_username_mapping()
+    user_actions_dictionaries = load_user_actions_dictionaries()
 
 def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date

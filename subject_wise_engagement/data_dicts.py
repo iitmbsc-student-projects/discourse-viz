@@ -23,14 +23,13 @@ def get_all_data_dicts():
     error_list = []
 
     for term in curr_plus_prev_trimesters: # keys are actually the terms, like "t1-2025","t3-2024"; # THIS LOOP IS FOR FINDING THE REQUIRED DATA FOR COURSES
-        start_term_time = time.time()   
         key=term
         user_actions_dictionaries[key] = {}
         try:
             for row in df_map_category_to_id.itertuples(): # This loop is for finding course-specific dataframes for each term
                 try:
                     category_id = row.category_id
-                    # if not (category_id==26 or category_id==27): continue # REMOVE FROM FINAL DEPLOYMENT
+                    if not (category_id==26 or category_id==27): continue # REMOVE FROM FINAL DEPLOYMENT
                     category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
                     if category_name not in user_actions_dictionaries[key]:
                         user_actions_dictionaries[key][category_name] = {}
@@ -66,15 +65,10 @@ def get_all_data_dicts():
             print(f"Error: {exec} for term: {term}")
             error_list.append(term)
             continue
-        end_term_time = time.time()
-        # print(f"all_course_specific_dataframes | term={term} : {round(end_term_time - start_term_time,2)} seconds\n")
-        # with open("time_log.txt", "a") as f:
-        #     f.write(f"all_course_specific_dataframes | term={term} : {round(end_term_time - start_term_time,2)} seconds\n")
 
 
     for term in curr_plus_prev_trimesters:
         # THIS LOOP IS FOR FINDIND THE REQUIRED DATA OF OVERALL DISCOURSE
-        start_term_time_overall = time.time()
         start_date, end_date = get_trimester_dates(term)
         params = {"start_date": start_date, "end_date": end_date}
         
@@ -93,10 +87,6 @@ def get_all_data_dicts():
             print(f"Error: {exec} for term: {term}")
             error_list.append(term)
             continue
-        end_term_time_overall = time.time()
-        # print(f"overall_discourse_dataframes | term={term} : {round(end_term_time_overall - start_term_time_overall,2)} seconds\n")
-        # with open("time_log.txt", "a") as f:
-        #     f.write(f"overall_discourse_dataframes | term={term} : {round(end_term_time_overall - start_term_time_overall,2)} seconds\n")
     
     if error_list: print(error_list)
     return user_actions_dictionaries # MOST IMP VARIABLE IN THE WHOLE CODE

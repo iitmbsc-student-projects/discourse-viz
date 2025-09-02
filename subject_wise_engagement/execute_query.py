@@ -235,7 +235,7 @@ def execute_query_108(query_id, query_params=None): # userid-name mapping
 
 
 def execute_query_102(query_id, query_params=None): # overall discourse engagement
-    print("Now inside execute_query_102 for overall discourse engagement")
+    print("Now inside execute_query_102 for overall discourse engagement | params:", query_params)
     DISCOURSE_BASE_URL = "https://discourse.onlinedegree.iitm.ac.in"
     GROUP_NAME = "discourse_analytics"
     API_USERNAME = 'shubhamG'
