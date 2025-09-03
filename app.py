@@ -364,14 +364,12 @@ def authorized():
 
 @app.route("/<course_name>")
 def course_page(course_name):
-    current_term = get_current_trimester()
-    previous_term = get_previous_trimesters(current_term)[1] # Get the previous term, for example, if latest_term = "t2-2025", then previous_term = "t1-2025"
     course_name_original = course_name
     try:
         course_name = course_name.replace("-", "_").replace(":","_")
         return render_template(
             'course_specific_viz.html',
-            term_list_for_dropdown = [current_term, previous_term],
+            term_list_for_dropdown = get_previous_trimesters(get_current_trimester())[:3], # List of terms for dropdown, like ["t2-2025","t1-2025","t3-2024"]
             course_name=course_name_original.title().replace("_"," "),
             course_name_escaped=course_name  # Pass the escaped course name to the template
         )
