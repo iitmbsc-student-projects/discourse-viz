@@ -39,7 +39,7 @@ def load_df_map_category_to_id():
 
 def load_id_username_mapping():
     from subject_wise_engagement.execute_query import execute_query_108
-    df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT
+    df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT # CHANGED FOR TESTING
     # df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
     return df
 
@@ -369,7 +369,7 @@ def course_page(course_name):
         course_name = course_name.replace("-", "_").replace(":","_")
         return render_template(
             'course_specific_viz.html',
-            term_list_for_dropdown = get_previous_trimesters(get_current_trimester())[:3], # List of terms for dropdown, like ["t2-2025","t1-2025","t3-2024"]
+            term_list_for_dropdown = get_previous_trimesters(get_current_trimester())[:2], # List of terms for dropdown, like ["t2-2025","t1-2025","t3-2024"] # CHANGED FOR TESTING
             course_name=course_name_original.title().replace("_"," "),
             course_name_escaped=course_name  # Pass the escaped course name to the template
         )
