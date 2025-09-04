@@ -345,17 +345,17 @@ def create_weekwise_engagement(user_actions_df):
             sort=pivot_table_reset["week_number"].tolist(),
             axis=alt.Axis(labelAngle=45)  # Set label angle here
         ),
-        y=alt.Y('total_score:Q', title='Total Score'),
+        y=alt.Y('total_score:Q', title='Engagement Score'),
         color=alt.value('#2E86AB'),
         tooltip=[
             alt.Tooltip('week_number:O', title='Week Number'),
-            alt.Tooltip('total_score:Q', title='Total Score'),
+            alt.Tooltip('total_score:Q', title='Engagement Score'),
             alt.Tooltip('metrics_details:N', title='Metrics Details')
         ]
     ).properties(
         width=700,
         # height=400,
-        title="Histogram of Total Score by Week Number"
+        title="Histogram of Engagement Score by Week Number"
     )
 
     return heatmap
