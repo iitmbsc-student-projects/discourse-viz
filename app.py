@@ -76,7 +76,7 @@ def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
     today = datetime.now().strftime("%d-%m-%Y")
     trimester_corresponding_to_today = get_current_trimester()
-    trimester_data_to_be_removed = get_previous_trimesters(trimester_corresponding_to_today)[2] # For example, if today's trimester = "t2-2025", then DELETE any data corresponding to "t3-2024"    
+    trimester_data_to_be_removed = get_previous_trimesters(trimester_corresponding_to_today)[3] # For example, if today's trimester = "t2-2025", then DELETE any data corresponding to "t3-2024"    
     user_actions_dictionaries.pop(trimester_data_to_be_removed, None) # Remove the data, without raising eny errors
     print("User actions dictionaries keys: ", user_actions_dictionaries.keys())
 
