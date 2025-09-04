@@ -12,4 +12,5 @@ temp.html
 TRASH/*
 *pycache*
 __pycache__/
+*.pyc
 *log*
