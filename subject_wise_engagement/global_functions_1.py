@@ -355,7 +355,7 @@ def create_weekwise_engagement(user_actions_df):
     ).properties(
         width=700,
         # height=400,
-        title="Heatmap of Total Score by Week Number"
+        title="Histogram of Total Score by Week Number"
     )
 
     return heatmap
