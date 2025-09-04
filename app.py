@@ -273,14 +273,20 @@ def get_users_engagement_chart(course, user_list, term="t1-2025"):
     """
     Returns the course-specific chart of a specific set of users; uses unnormalised dataframe
     """
-    user_list = [name.lower().strip() for name in user_list]
-    relevant_df = user_actions_dictionaries[term][course]["unnormalized_scores"]
-    relevant_df = relevant_df[(relevant_df["acting_username"].str.lower()).isin(user_list)] # filter based on user_list
-    if not relevant_df.empty:
-        chart = create_stacked_bar_chart_for_course_specific_engagement(relevant_df,course) # create activity chart specific to user list
-        return chart
-    else:
-        return create_empty_chart_in_case_of_errors(message="None of the users from the list was found, please provide a new set of users.")
+    try:
+        user_list = [name.lower().strip() for name in user_list]
+        relevant_df = user_actions_dictionaries[term][course]["unnormalized_scores"]
+        relevant_df = relevant_df[(relevant_df["acting_username"].str.lower()).isin(user_list)] # filter based on user_list
+        if not relevant_df.empty:
+            chart = create_stacked_bar_chart_for_course_specific_engagement(relevant_df,course) # create activity chart specific to user list
+            return chart
+        else:
+            return create_empty_chart_in_case_of_errors(message="None of the users from the list was found, please provide a new set of users.")
+    except KeyError as ke:
+        return create_empty_chart_in_case_of_errors(message="The course wasn't offered in the selected term.\nPlease contact support if you suspect any discrepancy.")
+    except Exception as e:
+        print(f"Error in get_users_engagement_chart: {e}")
+        return create_empty_chart_in_case_of_errors(message="The chart could not be loaded.\nplease contact support if issue persists.")
 
 def get_top_10_users_chart(term, subject):
     """
