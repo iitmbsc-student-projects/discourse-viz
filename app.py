@@ -8,151 +8,32 @@ from apscheduler.schedulers.background import BackgroundScheduler # This is used
 from datetime import datetime, timedelta # This is used to get the current date and time
 
 # Imports from other files
+from auth import init_oauth, register_auth_routes
+from config import Config
+from constants import foundation_courses, diploma_programming_courses, diploma_data_science_courses, degree_courses
+import data_loader
+from utils import sanitize_filepath, get_current_trimester, get_previous_trimesters
+
 from user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users
 
-from subject_wise_engagement.data_dicts import get_all_data_dicts
+from data_processor import get_all_data_dicts
 
-from subject_wise_engagement.global_functions_1 import get_current_trimester, create_weekwise_engagement, get_previous_trimesters, sanitize_filepath, create_raw_metrics_dataframe, create_unnormalized_scores_dataframe, create_log_normalized_scores_dataframe, weights_dict_for_overall_engaagement, create_log_normalized_scores_dataframe_for_all_users, create_unnormalized_scores_dataframe_for_all_users
+from subject_wise_engagement.global_functions_1 import create_weekwise_engagement, create_raw_metrics_dataframe, create_unnormalized_scores_dataframe, create_log_normalized_scores_dataframe, weights_dict_for_overall_engaagement, create_log_normalized_scores_dataframe_for_all_users, create_unnormalized_scores_dataframe_for_all_users
 
 from subject_wise_engagement.execute_query import execute_query_108, execute_query_103, execute_query_102
 
-from subject_wise_engagement.fetch_category_IDs_107 import df_map_category_to_id
-
 from visualizations.functions_to_get_charts import create_stacked_bar_chart_for_overall_engagement, create_stacked_bar_chart_for_course_specific_engagement, create_empty_chart_in_case_of_errors
 
-# GLOBAL VARIABLES
+# GLOBAL VARIABLES & FLAGS
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY")  # secret key to secure cookies and session data.
-oauth = OAuth(app) # OAuth is a way to safely let users login using Google without handling their passwords yourself
-user_actions_loaded = False
+app.config.from_object(Config)
+oauth, google = init_oauth(app)
+register_auth_routes(app, google) # GOOGLE AUTH ROUTES
 
-
-
-# DATA LOADER FUNCTIONS
-def load_user_actions_dictionaries():
-    from subject_wise_engagement.data_dicts import get_all_data_dicts
-    return get_all_data_dicts()
-
-def load_df_map_category_to_id():
-    from subject_wise_engagement.fetch_category_IDs_107 import df_map_category_to_id
-    return df_map_category_to_id
-
-def load_id_username_mapping():
-    from subject_wise_engagement.execute_query import execute_query_108
-    df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT # CHANGED FOR TESTING
-    # df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
-    return df
-
-def init_minimal_data():
-    global df_map_category_to_id, id_username_mapping, user_actions_dictionaries
-    df_map_category_to_id = load_df_map_category_to_id()  # ~1 min
-    id_username_mapping = load_id_username_mapping()      # ~1 min
-
-    # Create empty placeholders based on category IDs and current terms
-    current_and_prev_terms = get_previous_trimesters(get_current_trimester())[:2]
-    user_actions_dictionaries = {
-        term: {
-            sanitize_filepath(row.name).lower(): {
-                "user_actions_df": pd.DataFrame(),
-                "raw_metrics": pd.DataFrame(),
-                "unnormalized_scores": pd.DataFrame(),
-                "log_normalized_scores": pd.DataFrame()
-            } for row in df_map_category_to_id.itertuples()
-        }
-        for term in current_and_prev_terms
-    }
-    print(f"Keys in user_actions_dictionaries after minimal init: {list(user_actions_dictionaries.keys())}")
-
-def background_load_user_actions():
-    global user_actions_dictionaries, user_actions_loaded
-    print("Before background load:", user_actions_loaded)
-    print("Starting background loading of user_actions_dictionaries...")
-    user_actions_dictionaries = load_user_actions_dictionaries()  # ~20 min
-    user_actions_loaded = True
-    print("Background loading completed.")
-    print("After background load:", user_actions_loaded)
-
-def refresh_all_data(): # LATER, MOVE THIS FUNCTION TO DATA_DICTS.PY FILE
-    global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
-    today = datetime.now().strftime("%d-%m-%Y")
-    trimester_corresponding_to_today = get_current_trimester()
-    trimester_data_to_be_removed = get_previous_trimesters(trimester_corresponding_to_today)[3] # For example, if today's trimester = "t3-2025", then DELETE any data corresponding to "t3-2024"    
-    user_actions_dictionaries.pop(trimester_data_to_be_removed, None) # Remove the data, without raising eny errors
-    print("User actions dictionaries keys: ", user_actions_dictionaries.keys())
-
-    # Creating new data for each course
-    for row in df_map_category_to_id.itertuples():
-        category_id = row.category_id
-        category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
-        if category_name not in user_actions_dictionaries[trimester_corresponding_to_today]:
-            print(f"Inside refresh function for date = {today}\n{category_name} not found in user_actions_dictionaries for trimester {trimester_corresponding_to_today}")
-            continue
-        query_params_for_103 = {"category_id": str(category_id), "start_date": last_refresh_date, "end_date": today}
-
-        latest_user_actions_df = execute_query_103(103, query_params=query_params_for_103) # This is the data between last_refresh_date and today
-        print(f"Inside refresh function for date = {today}\nLatest user actions dataframe for {category_name} has {len(latest_user_actions_df)} rows")
-        if not latest_user_actions_df.empty: # Modify existing data iff there is some change since last update
-
-            # Now append this latest user_actions_df to the existing user_actions_df, and DROP the duplicate rows
-            existing_user_actions_df = user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"]
-            new_user_actions_df = pd.concat([existing_user_actions_df, latest_user_actions_df]).drop_duplicates()
-            user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"] = new_user_actions_df
-
-            # Now calculate the scores dataframe using new_user_actions_df
-            new_raw_metrics_dataframe = create_raw_metrics_dataframe(new_user_actions_df)
-            new_unnormalized_scores_df = create_unnormalized_scores_dataframe(new_raw_metrics_dataframe)
-            new_log_normalized_scores_df = create_log_normalized_scores_dataframe(new_raw_metrics_dataframe)
-
-            # Now assign the newly created dataframes to the original user_actions_dictionaries
-            user_actions_dictionaries[trimester_corresponding_to_today][category_name]["raw_metrics"] = new_raw_metrics_dataframe
-            user_actions_dictionaries[trimester_corresponding_to_today][category_name]["unnormalized_scores"] = new_unnormalized_scores_df
-            user_actions_dictionaries[trimester_corresponding_to_today][category_name]["log_normalized_scores"] = new_log_normalized_scores_df
-            
-    # Updating data for overall engagement
-    query_params_for_102 = {"start_date": last_refresh_date, "end_date": today}
-    latest_raw_metrics_for_overall_engagement = execute_query_102(102, query_params = query_params_for_102)
-    existing_raw_metrics_for_overall_engagement = user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["raw_metrics"]
-
-    # Concatenate the latest raw metrics with the existing raw metrics, and drop duplicates
-    new_raw_metrics_for_overall_engagement = pd.concat([latest_raw_metrics_for_overall_engagement, existing_raw_metrics_for_overall_engagement]).drop_duplicates()
-    new_raw_metrics_for_overall_engagement = new_raw_metrics_for_overall_engagement.groupby("user_id", as_index=False).sum() # Group by user_id and sum all other metrics for each user
-
-    new_raw_metrics_for_overall_engagement = new_raw_metrics_for_overall_engagement[["user_id"] + list(weights_dict_for_overall_engaagement.keys())]
-
-
-    new_unnormalized_scores_dataframe_all_users, new_log_normalized_scores_dataframe_all_users = create_unnormalized_scores_dataframe_for_all_users(new_raw_metrics_for_overall_engagement), create_log_normalized_scores_dataframe_for_all_users(new_raw_metrics_for_overall_engagement)
-
-    # Final assignment for all_users_engagement
-    user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["raw_metrics"] = new_raw_metrics_for_overall_engagement
-    user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["unnormalized_scores"] = new_unnormalized_scores_dataframe_all_users
-    user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["log_normalized_scores"] = new_log_normalized_scores_dataframe_all_users
-
-    last_refresh_date = today # Update the last refresh date to today
-    print(f"Data refreshed successfully for {trimester_corresponding_to_today} trimester. Last refresh date is now set to {last_refresh_date}.")
-
-
-
-google = oauth.register( # Then you told OAuth: Hey OAuth
-    
-    name='google', # register Google as a login provider, and here’s my...
-    client_id= os.environ.get("GOOGLE_AUTH_CLIENT_ID"), # client_id
-    client_secret= os.environ.get("GOOGLE_AUTH_CLIENT_SECRET"), # a secret password only your app and Google know
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration', # Google OpenID configuration URL (this tells your app where to send users to login)
-    client_kwargs={'scope': 'openid email profile'} # meaning what user info you want to access.
-)
-
-foundation_courses = ['Mathematics for Data Science I','Statistics for Data Science I','Computational Thinking','English I','English II','Mathematics for Data Science II','Statistics for Data Science II','Programming in Python']
-diploma_programming_courses = ['Programming, Data Structures and Algorithms','Database Management Systems','Modern Application Development I','System Commands','Modern Application Development II','Programming Concepts using Java']
-diploma_data_science_courses = ['Machine Learning Foundations','Business Data Management','Machine Learning Techniques','Machine Learning Practice','Tools in Data Science','Business Analytics']
-degree_courses = ['Deep Learning','AI: Search Methods for Problem Solving','Software Testing','Software Engineering','Strategies for Professional Growth','Industry 4.0','Design Thinking for Data Driven App Development','Speech Technology','Privacy & Security in Online Social Media','Algorithmic Thinking in Bioinformatics','Data Visualization Design','Linear Statistical Models','Market Research','Introduction to Big Data','Financial Forensics','Big Data and Biological Networks','Advanced Algorithms','Special topics in ML (Reinforcement Learning)','Statistical Computing','Programming in C','Mathematical Thinking','Computer System Design','Operating Systems','Deep Learning for Computer Vision','Large Language Models','Managerial Economics','Game Theory and Strategy','Corporate Finance','Deep Learning Practice','Introduction to Natural Language Processing']
-
-degree_courses.sort()
-diploma_data_science_courses.sort()
-diploma_programming_courses.sort()
-foundation_courses.sort()
 
 def get_top_respondents_from_useractions_df(course): # Put this function in processors.py file in new structure
     term = get_current_trimester()
+    user_actions_dictionaries = data_loader.get_user_actions_dictionaries()
     df = (user_actions_dictionaries[term][course]["user_actions_df"]).copy(deep=True) # Make a copy to avoid modifying the original dataframe
     if df.empty:
         raise ValueError("The user actions dataframe is empty, cannot compute top respondents.")
@@ -189,6 +70,7 @@ def get_top_respondents_from_useractions_df(course): # Put this function in proc
 
 def get_trending_topics_from_useractions_df(course): # Put this function in processors.py file in new structure
     term = get_current_trimester()
+    user_actions_dictionaries = data_loader.get_user_actions_dictionaries()
     df = (user_actions_dictionaries[term][course]["user_actions_df"]).copy() # Make a copy to avoid modifying the original dataframe
     if df.empty:
         raise ValueError("The user actions dataframe is empty, cannot compute trending topics.")
@@ -252,16 +134,16 @@ def get_trending_topics_from_useractions_df(course): # Put this function in proc
         quote_count = row.get('quote', 0)
         top_trending_list.append((topic_id, url, topic_title, int(response_count), int(like_count), int(quote_count)))
 
-
     return top_trending_list
 
 
 def generate_chart_for_overall_engagement(term):
     try:
+        user_actions_dictionaries = data_loader.get_user_actions_dictionaries()
+        id_username_mapping = data_loader.get_id_username_mapping()
         unnormalized_df = user_actions_dictionaries[term]["overall"]["unnormalized_scores"]
         unnormalized_df = unnormalized_df[unnormalized_df["user_id"]>0]
         top_10_users = pd.DataFrame(unnormalized_df.head(10))
-        # id_username_mapping = pd.read_csv("data/id_username_mapping.csv")
         top_10_users = top_10_users.merge(id_username_mapping, on="user_id")
         chart = create_stacked_bar_chart_for_overall_engagement(top_10_users, term=term)
         return chart
@@ -274,6 +156,7 @@ def get_users_engagement_chart(course, user_list, term="t1-2025"):
     Returns the course-specific chart of a specific set of users; uses unnormalised dataframe
     """
     user_list = [name.lower().strip() for name in user_list]
+    user_actions_dictionaries = data_loader.get_user_actions_dictionaries()
     relevant_df = user_actions_dictionaries[term][course]["unnormalized_scores"]
     relevant_df = relevant_df[(relevant_df["acting_username"].str.lower()).isin(user_list)] # filter based on user_list
     if not relevant_df.empty:
@@ -286,6 +169,7 @@ def get_top_10_users_chart(term, subject):
     """
     Returns the course & term specific chart of top-10 most active users; uses log-normalised dataframe
     """
+    user_actions_dictionaries = data_loader.get_user_actions_dictionaries()
     log_normalized_df = user_actions_dictionaries[term][subject]["log_normalized_scores"]
 
     # Finding the top-10 users
@@ -302,6 +186,7 @@ def get_top_10_users_chart(term, subject):
 @app.route('/')
 def index():
     latest_term = get_current_trimester()
+    user_actions_dictionaries = data_loader.get_user_actions_dictionaries()
     return render_template('index.html', 
                            foundation_courses=foundation_courses,
                            diploma_programming_courses=diploma_programming_courses,
@@ -312,11 +197,12 @@ def index():
 
 @app.route('/loading-status')
 def loading_status():
-    global user_actions_loaded
+    user_actions_loaded = data_loader.get_user_actions_loaded()
     return {"loaded": user_actions_loaded}
 
 @app.route('/get_chart') # Used to get the Overall Discourse Charts on the home page
 def get_overall_discourse_chart():
+    user_actions_loaded = data_loader.get_user_actions_loaded()
     if not user_actions_loaded:
         return "<h3 style='color:violet'>Data is still loading. Once the background data fetching is completed, the chart will automatically be rendered.<br>Kindly wait for a few minutes!</h3>"
     term = request.args.get('chart')
@@ -326,41 +212,6 @@ def get_overall_discourse_chart():
         return chart_html
     else:
         return "<h2>No chart selected</h2>"
-
-@app.route('/login')
-def login():
-    redirect_uri = url_for('authorized', _external=True)
-    return google.authorize_redirect(redirect_uri) #User clicks Login → /login → Google login page → /auth/callback
-
-@app.route('/logout')
-def logout():
-    session.pop('user', None)
-    session.pop('google_token', None)
-    return redirect(url_for('index'))
-
-@app.route('/auth/callback') 
-def authorized():
-    token = google.authorize_access_token()
-    if token is None:
-        return 'Access denied: reason={} error={}'.format(
-            request.args.get('error_reason'),
-            request.args.get('error_description')
-        ) # If token is missing (maybe user said "No" or an error happened),
-
-    session['google_token'] = token
-    user_info = google.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
-    session['user'] = user_info
-    email = user_info.get('email')
-
-    # Check if the email ends with "study.iitm.ac.in"
-    if not email.endswith('study.iitm.ac.in'):
-        flash('Access denied: unauthorized email domain. Please login again with a valid email address.')
-        session.pop('user', None)  # Clear the user session
-        session.pop('google_token', None)  # Clear the token session
-        return redirect(url_for('index'))
-
-    session['user'] = user_info
-    return redirect(url_for('index'))
 
 @app.route("/<course_name>")
 def course_page(course_name):
@@ -399,6 +250,7 @@ def top_users_chart(course_name, term):
 def weekwise_chart(course_name, term):
     try:
         course_name = course_name.replace("-", "_").replace(":","_").lower()
+        user_actions_dictionaries = data_loader.get_user_actions_dictionaries()
         user_actions_df = user_actions_dictionaries[term][course_name]["user_actions_df"]
         weekwise_engagement_chart = create_weekwise_engagement(user_actions_df)
         return weekwise_engagement_chart.to_html()
@@ -470,13 +322,13 @@ def most_trending_topics(course_name):
 
 if __name__ == '__main__':
     # Initial load
-    # get_all_data()
-    init_minimal_data()  # Blocking: ~2 mins
-    threading.Thread(target=background_load_user_actions, daemon=True).start()
+    # Use data_loader functions instead of duplicating the logic
+    df_map_category_to_id, id_username_mapping, user_actions_dictionaries = data_loader.init_minimal_data() # Blocking: ~2 mins
+    threading.Thread(target=data_loader.background_load_user_actions, daemon=True).start()
 
     # Schedule daily refresh
     scheduler = BackgroundScheduler()
-    scheduler.add_job(refresh_all_data, 'cron', hour=1, minute=0) # refresh data every day at 1am
+    scheduler.add_job(data_loader.refresh_all_data, 'cron', hour=1, minute=0) # refresh data every day at 1am
     scheduler.start()
 
     app.run(host='0.0.0.0', 
