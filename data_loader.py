@@ -1,8 +1,8 @@
 import pandas as pd
 from utils import sanitize_filepath, get_current_trimester, get_previous_trimesters
 from datetime import datetime, timedelta
-from subject_wise_engagement.execute_query import execute_query_103, execute_query_102
-from subject_wise_engagement.global_functions_1 import (create_raw_metrics_dataframe,
+from execute_query import execute_query_103, execute_query_102
+from global_functions_1 import (create_raw_metrics_dataframe,
                                                         create_unnormalized_scores_dataframe,create_log_normalized_scores_dataframe, weights_dict_for_overall_engaagement,create_log_normalized_scores_dataframe_for_all_users, create_unnormalized_scores_dataframe_for_all_users)
 
 # Global state (initialized by init_minimal_data / background_load_user_actions)
@@ -18,11 +18,11 @@ def load_user_actions_dictionaries():
     return get_all_data_dicts()
 
 def load_df_map_category_to_id():
-    from subject_wise_engagement.fetch_category_IDs_107 import df_map_category_to_id
+    from fetch_category_IDs_107 import df_map_category_to_id
     return df_map_category_to_id
 
 def load_id_username_mapping():
-    from subject_wise_engagement.execute_query import execute_query_108
+    from execute_query import execute_query_108
     df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT # CHANGED FOR TESTING
     # df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
     return df

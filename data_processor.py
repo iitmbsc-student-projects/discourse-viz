@@ -7,8 +7,8 @@ def get_all_data_dicts():
     # Imports from other programs
     from utils import sanitize_filepath, get_current_trimester, get_previous_trimesters
     
-    from subject_wise_engagement.global_functions_1 import get_course_specific_dataframes, get_overall_engagement_df, get_top_10_first_responders
-    from subject_wise_engagement.fetch_category_IDs_107 import df_map_category_to_id
+    from global_functions_1 import get_course_specific_dataframes, get_overall_engagement_df, get_top_10_first_responders
+    from fetch_category_IDs_107 import df_map_category_to_id
 
     curr_plus_prev_trimesters = get_previous_trimesters(get_current_trimester())[:2] # The items of this list will act as keys of the dictionary; elements are terms in descending order, like current(t2-2025), previous(t1-2025), t3-2024 and so on # CHANGED FOR TESTING
 

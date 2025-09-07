@@ -5,7 +5,7 @@ import pandas as pd
 import time, os
 import json  # Importing json to handle JSON data
 from functools import lru_cache 
-from subject_wise_engagement.execute_query import execute_query_107
+from execute_query import execute_query_107
 # from execute_query import execute_query_107
 
 

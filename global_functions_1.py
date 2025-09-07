@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 import pandas as pd
 import numpy as np
 from functools import lru_cache
-from subject_wise_engagement.execute_query import execute_query_103, execute_query_102
+from execute_query import execute_query_103, execute_query_102
 import altair as alt
 
 # Global variables
