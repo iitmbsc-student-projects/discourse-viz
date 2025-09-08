@@ -2,6 +2,7 @@
 import os
 from flask import url_for, redirect, session, request, flash
 from authlib.integrations.flask_client import OAuth
+from routes.api import index
 
 def init_oauth(app):
     """
@@ -33,7 +34,7 @@ def register_auth_routes(app, google):
     def logout():
         session.pop('user', None)
         session.pop('google_token', None)
-        return redirect(url_for('index'))
+        return redirect(url_for('api.index'))
 
     @app.route('/auth/callback')
     def authorized():
@@ -42,7 +43,7 @@ def register_auth_routes(app, google):
             return 'Access denied: reason={} error={}'.format(
                 request.args.get('error_reason'),
                 request.args.get('error_description')
-            ) # If token is missing (maybe user said "No" or an error happened),
+            ) # If token is missing (maybe user said "No" or an error happened)
         session['google_token'] = token
         user_info = google.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
         session['user'] = user_info
@@ -52,7 +53,7 @@ def register_auth_routes(app, google):
             flash('Access denied: unauthorized email domain. Please login again with a valid email address.')
             session.pop('user', None)
             session.pop('google_token', None)
-            return redirect(url_for('index'))
+            return redirect(url_for('api.index'))
 
         session['user'] = user_info
-        return redirect(url_for('index'))
+        return redirect(url_for('api.index'))

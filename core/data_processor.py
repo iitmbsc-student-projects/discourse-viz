@@ -5,21 +5,18 @@ def get_all_data_dicts():
     import time
 
     # Imports from other programs
-    from utils import sanitize_filepath, get_current_trimester, get_previous_trimesters
+    from core.utils import sanitize_filepath, get_current_trimester, get_previous_trimesters, get_trimester_dates
     
-    from global_functions_1 import get_course_specific_dataframes, get_overall_engagement_df, get_top_10_first_responders
-    from fetch_category_IDs_107 import df_map_category_to_id
+    from processors.course_data_processors import get_course_specific_dataframes
+
+    from processors.overall_discourseData_processors import get_overall_engagement_df
+    
+    from core.data_loader import get_df_map_category_to_id
+    df_map_category_to_id = get_df_map_category_to_id()
 
     curr_plus_prev_trimesters = get_previous_trimesters(get_current_trimester())[:2] # The items of this list will act as keys of the dictionary; elements are terms in descending order, like current(t2-2025), previous(t1-2025), t3-2024 and so on # CHANGED FOR TESTING
 
-    def get_trimester_dates(trimester): # THIS WILL HELP IN SENDING DATES AS PARAMS FOR QUERIES LIKE 103
-        t, y = trimester.split('-')
-        trimester_dates = {
-            't1': ('01/01', '30/04'),
-            't2': ('01/05', '31/08'),
-            't3': ('01/09', '31/12')
-        }
-        return (f"{trimester_dates[t][0]}/{y}",f"{trimester_dates[t][1]}/{y}")
+    
     
     user_actions_dictionaries = {}
     error_list = []

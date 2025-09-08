@@ -7,6 +7,9 @@ import numpy as np
 import os
 import IPython.display
 
+from core.utils import get_trimester_week
+from constants import action_to_description
+
 def create_stacked_bar_chart_for_overall_engagement(raw_metrics, term):
     # Define the metrics we are interested in
     metrics = ['likes_received', 'likes_given', 'days_visited', 'solutions',
@@ -117,3 +120,63 @@ def create_empty_chart_in_case_of_errors(message = """There was some error gener
     )
 
     return chart
+
+def create_weekwise_engagement(user_actions_df):
+    """
+    This function creates a weekwise engagement dataframe.
+    It takes the user_actions_df as input and returns the weekwise engagement dataframe.
+    The weekwise engagement dataframe is created by grouping the user_actions_df by week_number and then counting the number of actions for each week.
+    """
+    user_actions_df["created_at"] = user_actions_df["created_at"].map(lambda x: x.split("T")[0]) # Convert datetime to date string
+    user_actions_df["week_number"] = user_actions_df["created_at"].map(lambda x: get_trimester_week(x)) # Get trimester week for each date, for example "t1-w1;  (01-01-2025, 07-01-2025)"
+
+
+    user_actions_df["action_name_new"] = user_actions_df["action_type"].astype(str).map(action_to_description)
+    df2 = user_actions_df[["week_number", "action_name_new"]] # Keep only the week_number and action_name_new columns
+
+    # Create a pivot table
+    pivot_table = pd.pivot_table(
+        df2,
+        index="week_number",  # Rows
+        columns="action_name_new",  # Columns
+        aggfunc="size",  # Count occurrences
+        fill_value=0  # Fill missing values with 0
+    )
+    # Remove the specified columns from the pivot table
+    columns_to_be_removed = ["user_edited_post", "likes_received", "linked", "received_response", "user's_post_quoted", "user_was_mentioned", "user_edited_post"]
+    pivot_table = pivot_table.drop(columns=columns_to_be_removed, errors='ignore')
+    pivot_table["total_score"] = pivot_table.apply(lambda row: sum(row[col] for col in pivot_table.columns), axis=1)
+
+    # Reset the index of the pivot_table to make "week_number" a column
+    pivot_table_reset = pivot_table.reset_index()
+
+    # Sort by total_score in descending order
+    pivot_table_reset = pivot_table_reset.sort_values(by="total_score", ascending=False)
+
+    # Combine all metric details into a single string for display in the tooltip
+    pivot_table_reset["metrics_details"] = pivot_table_reset.apply(
+        lambda row: "\n".join([f"{col}:{row[col]} | " for col in pivot_table.columns if col != "total_score"]),
+        axis=1
+    )
+    # Create the heatmap
+    heatmap = alt.Chart(pivot_table_reset).mark_rect().encode(
+        x=alt.X(
+            'week_number:O', 
+            title='Week Number (start:end)', 
+            sort=pivot_table_reset["week_number"].tolist(),
+            axis=alt.Axis(labelAngle=45)  # Set label angle here
+        ),
+        y=alt.Y('total_score:Q', title='Total Score'),
+        color=alt.value('#2E86AB'),
+        tooltip=[
+            alt.Tooltip('week_number:O', title='Week Number'),
+            alt.Tooltip('total_score:Q', title='Total Score'),
+            alt.Tooltip('metrics_details:N', title='Metrics Details')
+        ]
+    ).properties(
+        width=700,
+        # height=400,
+        title="Heatmap of Total Score by Week Number"
+    )
+
+    return heatmap

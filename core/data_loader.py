@@ -1,9 +1,14 @@
 import pandas as pd
-from utils import sanitize_filepath, get_current_trimester, get_previous_trimesters
-from datetime import datetime, timedelta
-from execute_query import execute_query_103, execute_query_102
-from global_functions_1 import (create_raw_metrics_dataframe,
-                                                        create_unnormalized_scores_dataframe,create_log_normalized_scores_dataframe, weights_dict_for_overall_engaagement,create_log_normalized_scores_dataframe_for_all_users, create_unnormalized_scores_dataframe_for_all_users)
+from core.utils import sanitize_filepath, get_current_trimester, get_previous_trimesters
+from datetime import datetime
+
+from constants import weights_dict_for_overall_engagement, env
+from core.execute_query import execute_discourse_query
+from processors.course_data_processors import (create_raw_metrics_dataframe,
+                                     create_unnormalized_scores_dataframe,create_log_normalized_scores_dataframe)
+
+from processors.overall_discourseData_processors import (
+                                create_log_normalized_scores_dataframe_for_all_users, create_unnormalized_scores_dataframe_for_all_users)
 
 # Global state (initialized by init_minimal_data / background_load_user_actions)
 user_actions_dictionaries = {}
@@ -14,17 +19,21 @@ last_refresh_date = None
 
 # DATA LOADER FUNCTIONS
 def load_user_actions_dictionaries():
-    from data_processor import get_all_data_dicts
+    from core.data_processor import get_all_data_dicts
     return get_all_data_dicts()
 
 def load_df_map_category_to_id():
-    from fetch_category_IDs_107 import df_map_category_to_id
+    df_map_category_to_id = execute_discourse_query(query_id=107,query_params=None)
+    irrelevant_categories = [63,64,79,80,86,87,88,91,95,96,97,103,104,105,106,107,112,113,114]
+    df_map_category_to_id = df_map_category_to_id[~df_map_category_to_id["category_id"].isin(irrelevant_categories)]
     return df_map_category_to_id
 
 def load_id_username_mapping():
-    from execute_query import execute_query_108
-    df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT # CHANGED FOR TESTING
-    # df = execute_query_108(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
+    from core.execute_query import execute_discourse_query
+    if env=="dev":
+        df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT # CHANGED FOR TESTING
+    else:
+        df = execute_discourse_query(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
     return df
 
 def init_minimal_data():
@@ -93,7 +102,7 @@ def refresh_all_data():
             continue
         query_params_for_103 = {"category_id": str(category_id), "start_date": last_refresh_date, "end_date": today}
 
-        latest_user_actions_df = execute_query_103(103, query_params=query_params_for_103)
+        latest_user_actions_df = execute_discourse_query(103, query_params=query_params_for_103)
         print(f"Inside refresh function for date = {today}\nLatest user actions dataframe for {category_name} has {len(latest_user_actions_df)} rows")
         if not latest_user_actions_df.empty:
             existing_user_actions_df = user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"]
@@ -110,12 +119,12 @@ def refresh_all_data():
             
     # Updating data for overall engagement
     query_params_for_102 = {"start_date": last_refresh_date, "end_date": today}
-    latest_raw_metrics_for_overall_engagement = execute_query_102(102, query_params = query_params_for_102)
+    latest_raw_metrics_for_overall_engagement = execute_discourse_query(102, query_params = query_params_for_102)
     existing_raw_metrics_for_overall_engagement = user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["raw_metrics"]
 
     new_raw_metrics_for_overall_engagement = pd.concat([latest_raw_metrics_for_overall_engagement, existing_raw_metrics_for_overall_engagement]).drop_duplicates()
     new_raw_metrics_for_overall_engagement = new_raw_metrics_for_overall_engagement.groupby("user_id", as_index=False).sum()
-    new_raw_metrics_for_overall_engagement = new_raw_metrics_for_overall_engagement[["user_id"] + list(weights_dict_for_overall_engaagement.keys())]
+    new_raw_metrics_for_overall_engagement = new_raw_metrics_for_overall_engagement[["user_id"] + list(weights_dict_for_overall_engagement.keys())]
 
     new_unnormalized_scores_dataframe_all_users, new_log_normalized_scores_dataframe_all_users = create_unnormalized_scores_dataframe_for_all_users(new_raw_metrics_for_overall_engagement), create_log_normalized_scores_dataframe_for_all_users(new_raw_metrics_for_overall_engagement)
 
