@@ -6,15 +6,14 @@ def get_all_data_dicts():
 
     # Imports from other programs
     from core.utils import sanitize_filepath, get_current_trimester, get_previous_trimesters, get_trimester_dates
-    
     from processors.course_data_processors import get_course_specific_dataframes
-
     from processors.overall_discourseData_processors import get_overall_engagement_df
+    from application.constants import env
     
     from core.data_loader import get_df_map_category_to_id
     df_map_category_to_id = get_df_map_category_to_id()
 
-    curr_plus_prev_trimesters = get_previous_trimesters(get_current_trimester())[:2] # The items of this list will act as keys of the dictionary; elements are terms in descending order, like current(t2-2025), previous(t1-2025), t3-2024 and so on # CHANGED FOR TESTING
+    curr_plus_prev_trimesters = get_previous_trimesters(get_current_trimester())[:3] # The items of this list will act as keys of the dictionary; elements are terms in descending order, like current(t2-2025), previous(t1-2025), t3-2024 and so on # CHANGED FOR TESTING
 
     
     
@@ -28,7 +27,8 @@ def get_all_data_dicts():
             for row in df_map_category_to_id.itertuples(): # This loop is for finding course-specific dataframes for each term
                 try:
                     category_id = row.category_id
-                    if not (category_id==26): continue # REMOVE FROM FINAL DEPLOYMENT # CHANGED FOR TESTING
+                    if env == "dev":
+                        if not (category_id==26): continue # REMOVE FROM FINAL DEPLOYMENT # CHANGED FOR TESTING
                     category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
                     if category_name not in user_actions_dictionaries[key]:
                         user_actions_dictionaries[key][category_name] = {}

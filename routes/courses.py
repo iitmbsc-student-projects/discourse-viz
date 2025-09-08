@@ -18,7 +18,7 @@ def course_page(course_name):
         course_name = course_name.replace("-", "_").replace(":", "_")
         return render_template(
             'course_specific_viz.html',
-            term_list_for_dropdown=get_previous_trimesters(get_current_trimester())[:2],
+            term_list_for_dropdown=get_previous_trimesters(get_current_trimester())[:3],
             course_name=course_name_original.title().replace("_", " "),
             course_name_escaped=course_name
         )

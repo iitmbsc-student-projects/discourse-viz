@@ -42,7 +42,7 @@ def init_minimal_data():
     id_username_mapping = load_id_username_mapping()      # ~1 min
 
     # Create empty placeholders based on category IDs and current terms
-    current_and_prev_terms = get_previous_trimesters(get_current_trimester())[:2]
+    current_and_prev_terms = get_previous_trimesters(get_current_trimester())[:3]
     user_actions_dictionaries = {
         term: {
             sanitize_filepath(row.name).lower(): {

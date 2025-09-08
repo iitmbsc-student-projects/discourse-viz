@@ -1,5 +1,7 @@
 import os
 
+# env = "dev"
+env = "production"
 
 # Discourse related constants
 api_key = os.environ.get('API_KEY')
@@ -59,6 +61,3 @@ weights_dict_for_overall_engagement = { 'likes_given': 0.4, # likes_given is als
                 "days_visited": 0.3, # decreased weightage because it is a very common action
                 'solutions': 10,
 }
-
-env = "dev"
-# env = "production"
