@@ -1,6 +1,6 @@
 import time, requests, json
 import pandas as pd
-from constants import env, API_USERNAME, GROUP_NAME, DISCOURSE_BASE_URL, API_KEY
+from application.constants import env, API_USERNAME, GROUP_NAME, DISCOURSE_BASE_URL, API_KEY
 
 
 def execute_discourse_query(query_id, query_params=None):

@@ -2,7 +2,7 @@ import pandas as pd
 from core.utils import sanitize_filepath, get_current_trimester, get_previous_trimesters
 from datetime import datetime
 
-from constants import weights_dict_for_overall_engagement, env
+from application.constants import weights_dict_for_overall_engagement, env
 from core.execute_query import execute_discourse_query
 from processors.course_data_processors import (create_raw_metrics_dataframe,
                                      create_unnormalized_scores_dataframe,create_log_normalized_scores_dataframe)

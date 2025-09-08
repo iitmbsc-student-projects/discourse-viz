@@ -4,7 +4,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 # Imports from other files
 from core.auth import init_oauth, register_auth_routes
-from config import Config
+from application.config import Config
 import core.data_loader as data_loader
 
 # Import route blueprints

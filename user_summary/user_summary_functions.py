@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 
-from constants import API_USERNAME, API_KEY, DISCOURSE_BASE_URL
+from application.constants import API_USERNAME, API_KEY, DISCOURSE_BASE_URL
 
 
 def get_user_summary(user_name):

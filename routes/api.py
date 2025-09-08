@@ -5,7 +5,7 @@ Handles API-specific routes and data endpoints.
 
 from flask import Blueprint, render_template, jsonify
 import core.data_loader as data_loader
-from constants import (
+from application.constants import (
     foundation_courses, 
     diploma_programming_courses, 
     diploma_data_science_courses, 

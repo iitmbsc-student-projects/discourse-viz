@@ -8,7 +8,7 @@ import numpy as np
 from datetime import datetime, timedelta
 
 
-from constants import action_to_description, weights_dict_for_course_specific_engagement, weights_dict_for_overall_engagement
+from application.constants import action_to_description, weights_dict_for_course_specific_engagement, weights_dict_for_overall_engagement
 import core.data_loader as data_loader
 from core.utils import get_current_trimester
 from core.execute_query import execute_discourse_query

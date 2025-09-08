@@ -3,7 +3,7 @@ import numpy as np
 from core.execute_query import execute_discourse_query
 import altair as alt
 
-from constants import weights_dict_for_overall_engagement
+from application.constants import weights_dict_for_overall_engagement
 
 def create_unnormalized_scores_dataframe_for_all_users(raw_metrics_df):
     """

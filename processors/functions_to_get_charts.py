@@ -8,7 +8,7 @@ import os
 import IPython.display
 
 from core.utils import get_trimester_week
-from constants import action_to_description
+from application.constants import action_to_description
 
 def create_stacked_bar_chart_for_overall_engagement(raw_metrics, term):
     # Define the metrics we are interested in
