@@ -13,3 +13,4 @@ TRASH/*
 *pycache*
 __pycache__/
 *log*
+*temp*
