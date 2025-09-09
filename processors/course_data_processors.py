@@ -17,8 +17,13 @@ from core.execute_query import execute_discourse_query
 def create_raw_metrics_dataframe(df):
     """
     This function creates a raw metrics dataframe.
-    The raw metrics are calculated by counting the occurrences of each action type for each user.
+    Steps:
+    1. Maps `action_type` values to more descriptive `action_name` values (via action_to_description).
+    2. Counts the occurrences of each action type (action_name) per user (acting_username).
+    3. Drops certain action types that are not required for analysis.
+    4. Returns a dataframe with one row per user and one column per action count.
     """
+
     # Change the values in action_name column based on values of action_type and map it via the action_to_description dictionary. This is done to make the column_names more intuitive to understand.
     subject_dataframe = df.copy()
     subject_dataframe['action_type'] = subject_dataframe['action_type'].astype(str)
