@@ -72,7 +72,7 @@ def execute_discourse_query(query_id, query_params=None):
         iteration_count += 1  # Increment iteration count for pagination
         if env=="dev": 
             if iteration_count>0: break # REMOVE FROM FINAL DEPLOYMENT
-        time.sleep(1.05)  # Wait before the next request
+        time.sleep(1.03)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
