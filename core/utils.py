@@ -8,11 +8,11 @@ def sanitize_filepath(name):
 def get_trimester_dates(trimester): # THIS WILL HELP IN SENDING DATES AS PARAMS FOR QUERIES LIKE 103
         t, y = trimester.split('-')
         trimester_dates = {
-            't1': ('01/01', '30/04'),
-            't2': ('01/05', '31/08'),
-            't3': ('01/09', '31/12')
+            't1': ('01-01', '30/04'),
+            't2': ('01-05', '31-08'),
+            't3': ('01-09', '31-12')
         }
-        return (f"{trimester_dates[t][0]}/{y}",f"{trimester_dates[t][1]}/{y}")
+        return (f"{trimester_dates[t][0]}-{y}",f"{trimester_dates[t][1]}-{y}")
 
 def get_current_trimester():
     today = date.today()
