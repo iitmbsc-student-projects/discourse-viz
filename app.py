@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     # Schedule daily refresh
     scheduler = BackgroundScheduler()
-    scheduler.add_job(data_loader.refresh_all_data, 'cron', hour=1, minute=0)  # refresh data every day at 1am
+    scheduler.add_job(data_loader.refresh_all_data, 'cron', hour=3, minute=30)  # refresh data every day at 3:30 am
     scheduler.start()
 
     app.run(
