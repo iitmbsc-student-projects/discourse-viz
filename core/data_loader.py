@@ -15,7 +15,7 @@ user_actions_dictionaries = {}
 df_map_category_to_id = None
 id_username_mapping = None
 user_actions_loaded = False
-last_refresh_date = None
+last_refresh_date = datetime.now().strftime("%d-%m-%Y")
 
 # DATA LOADER FUNCTIONS
 def load_user_actions_dictionaries():

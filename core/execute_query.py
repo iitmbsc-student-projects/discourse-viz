@@ -76,3 +76,11 @@ def execute_discourse_query(query_id, query_params=None):
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
     return results_dataframe  # Return the DataFrame with results
+
+
+if __name__ == "__main__":
+    from datetime import datetime
+    x = datetime.now().strftime("%d-%m-%Y")
+    print(x)
+    query_params_for_103 = {"category_id": str(26), "start_date": x, "end_date": "15/09/2025"}
+    print(len(execute_discourse_query(103, query_params={})))
