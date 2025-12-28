@@ -14,3 +14,4 @@ TRASH/*
 __pycache__/
 *log*
 *temp*
+!templates
