@@ -20,13 +20,13 @@
             <label for="term-select">Select Term:</label>
             <select id="term-select" class="term-dropdown">
                 {% for term in term_list_for_dropdown %}
-                    <option value="{{ term }}" {% if loop.index == 2 %}selected{% endif %}>{{ term }}</option>
+                    <option value="{{ term }}" {% if loop.index == 3 %}selected{% endif %}>{{ term }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="chart-container">
             <!-- Use iframe to completely isolate the chart -->
-            <iframe id="top-users-iframe" src="/{{ course_name_escaped }}/top_users_chart/{{ term_list_for_dropdown[1] }}" frameborder="0" width="100%"
+            <iframe id="top-users-iframe" src="/{{ course_name_escaped }}/top_users_chart/{{ term_list_for_dropdown[2] }}" frameborder="0" width="100%"
                 height="500px"></iframe>
         </div>
     </div>
@@ -38,13 +38,13 @@
             <label for="weekwise-term-select">Select Term:</label>
             <select id="weekwise-term-select" class="term-dropdown">
                 {% for term in term_list_for_dropdown %}
-                    <option value="{{ term }}" {% if loop.index == 2 %}selected{% endif %}>{{ term }}</option>
+                    <option value="{{ term }}" {% if loop.index == 3 %}selected{% endif %}>{{ term }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="chart-container">
             <!-- Use iframe to completely isolate the chart -->
-            <iframe id="weekwise-iframe" src="/{{ course_name_escaped }}/weekwise_chart/{{ term_list_for_dropdown[1] }}" frameborder="0" width="100%"
+            <iframe id="weekwise-iframe" src="/{{ course_name_escaped }}/weekwise_chart/{{ term_list_for_dropdown[2] }}" frameborder="0" width="100%"
                 height="500px"></iframe>
         </div>
     </div>
@@ -68,7 +68,7 @@
                     <label for="specific-users-term-select">Select Term:</label>
                     <select id="specific-users-term-select" name="selected_term" class="term-dropdown">
                         {% for term in term_list_for_dropdown %}
-                            <option value="{{ term }}" {% if loop.index == 2 %}selected{% endif %}>{{ term }}</option>
+                            <option value="{{ term }}" {% if loop.index == 3 %}selected{% endif %}>{{ term }}</option>
                         {% endfor %}
                     </select>
                 </div>
