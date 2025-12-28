@@ -93,6 +93,27 @@ def refresh_all_data():
     user_actions_dictionaries.pop(trimester_data_to_be_removed, None)
     print("User actions dictionaries keys: ", user_actions_dictionaries.keys())
 
+    # NEW: Initialize new trimester if it doesn't exist; BUG fixed on 28-DEC-2025
+    if trimester_corresponding_to_today not in user_actions_dictionaries:
+        print(f"New trimester detected: {trimester_corresponding_to_today}. Initializing structure...")
+        user_actions_dictionaries[trimester_corresponding_to_today] = {}
+        
+        # Initialize course structures
+        for row in df_map_category_to_id.itertuples():
+            category_name = sanitize_filepath(row.name).lower()
+            user_actions_dictionaries[trimester_corresponding_to_today][category_name] = {
+                "user_actions_df": pd.DataFrame(),
+                "raw_metrics": pd.DataFrame(),
+                "unnormalized_scores": pd.DataFrame(),
+                "log_normalized_scores": pd.DataFrame()
+            }
+        
+        # Initialize overall engagement structure
+        user_actions_dictionaries[trimester_corresponding_to_today]["overall"] = {
+            "raw_metrics": pd.DataFrame(),
+            "unnormalized_scores": pd.DataFrame(),
+            "log_normalized_scores": pd.DataFrame()
+        }
     # Creating new data for each course
     for row in df_map_category_to_id.itertuples():
         category_id = row.category_id
