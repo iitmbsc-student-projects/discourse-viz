@@ -21,12 +21,31 @@ API_USERNAME = 'shubhamG'
 foundation_courses = ['Mathematics for Data Science I','Statistics for Data Science I','Computational Thinking','English I','English II','Mathematics for Data Science II','Statistics for Data Science II','Programming in Python']
 diploma_programming_courses = ['Programming, Data Structures and Algorithms','Database Management Systems','Modern Application Development I','System Commands','Modern Application Development II','Programming Concepts using Java']
 diploma_data_science_courses = ['Machine Learning Foundations','Business Data Management','Machine Learning Techniques','Machine Learning Practice','Tools in Data Science','Business Analytics']
-degree_courses = ['Deep Learning','AI: Search Methods for Problem Solving','Software Testing','Software Engineering','Strategies for Professional Growth','Industry 4.0','Design Thinking for Data Driven App Development','Speech Technology','Privacy & Security in Online Social Media','Algorithmic Thinking in Bioinformatics','Data Visualization Design','Linear Statistical Models','Market Research','Introduction to Big Data','Financial Forensics','Big Data and Biological Networks','Advanced Algorithms','Special topics in ML (Reinforcement Learning)','Statistical Computing','Programming in C','Mathematical Thinking','Computer System Design','Operating Systems','Deep Learning for Computer Vision','Large Language Models','Managerial Economics','Game Theory and Strategy','Corporate Finance','Deep Learning Practice','Introduction to Natural Language Processing', "Algorithms for Data Science (ADS)","Generative AI", "MLOPS"]
 
-degree_courses.sort()
+core_degree_courses = ['Deep Learning','AI: Search Methods for Problem Solving','Software Testing',
+                        'Software Engineering','Strategies for Professional Growth']
+
+degree_level_courses = ['Linear Statistical Models','Market Research',
+'Statistical Computing','Programming in C','Mathematical Thinking',
+'Computer System Design','Managerial Economics','Corporate Finance',"Introduction to Deep Learning and Generative AI", "Application Development Lab","Project GEN_AI"]
+
+L4_degree_courses = ['Financial Forensics','Industry 4.0','Algorithmic Thinking in Bioinformatics',
+'Design Thinking for Data Driven App Development', 'Privacy & Security in Online Social Media','Data Visualization Design',
+'Big Data and Biological Networks','Advanced Algorithms','Game Theory and Strategy',"Data Science and AI Lab",
+'Operating Systems',"Computer Networks"]
+
+L5_degree_courses = ["Mathematical Foundations of Generative AI","Algorithms for Data Science (ADS)", "MLOPS",
+'Special topics in ML (Reinforcement Learning)','Speech Technology','Deep Learning for Computer Vision','Large Language Models',
+'Introduction to Big Data','Deep Learning Practice']
+
+# degree_courses.sort()
 diploma_data_science_courses.sort()
 diploma_programming_courses.sort()
 foundation_courses.sort()
+core_degree_courses.sort()
+degree_level_courses.sort()
+L4_degree_courses.sort()
+L5_degree_courses.sort()
 
 # DICTIONARIES FOR user-actions-df analysis
 action_to_description = {
@@ -51,7 +70,7 @@ weights_dict_for_course_specific_engagement = { 'likes_given': 0.3, # 0.3
                 "likes_received": 0.8, # changed from 0.7
                 "created_new_topic": 0.5, # changed from 1.0
                 "replied": 0.7,
-                'solved_a_topic': 10 # Highest weight
+                'solved_a_topic': 3 # Highest weight
             }
 
 weights_dict_for_overall_engagement = { 'likes_given': 0.4, # likes_given is also important
@@ -59,5 +78,5 @@ weights_dict_for_overall_engagement = { 'likes_given': 0.4, # likes_given is als
                 "topics_created": 0.4,
                 "posts_created": 0.7,
                 "days_visited": 0.3, # decreased weightage because it is a very common action
-                'solutions': 10,
+                'solutions': 3,
 }

@@ -2,7 +2,6 @@
 import os
 from flask import url_for, redirect, session, request, flash
 from authlib.integrations.flask_client import OAuth
-from routes.api import index
 
 def init_oauth(app):
     """

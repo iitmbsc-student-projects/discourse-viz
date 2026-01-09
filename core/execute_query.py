@@ -63,10 +63,10 @@ def execute_discourse_query(query_id, query_params=None):
         except Exception as e:
             # Check for specific 429 error in the exception message
             if "429" in str(e) and "Too Many Requests" in str(e):
-                raise RuntimeError(f"**********\nStopping execution due to rate limiting\nERROR: {e} for query_id = {query_id}\QUERY_PARAMS = {query_params}\n**********")
+                raise RuntimeError(f"**********\nStopping execution due to rate limiting\nERROR: {e} for query_id = {query_id}\nQUERY_PARAMS = {query_params}\n**********")
             else:
                 # Log other exceptions
-                print(f"**********\nStopping execution due to\nERROR: {e} for query_id = {query_id}\QUERY_PARAMS = {query_params}\n**********")
+                print(f"**********\nStopping execution due to\nERROR: {e} for query_id = {query_id}\nQUERY_PARAMS = {query_params}\n**********")
 
 
         iteration_count += 1  # Increment iteration count for pagination

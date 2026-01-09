@@ -23,9 +23,14 @@ def load_user_actions_dictionaries():
     return get_all_data_dicts()
 
 def load_df_map_category_to_id():
-    df_map_category_to_id = execute_discourse_query(query_id=107,query_params=None)
-    irrelevant_categories = [63,64,79,80,86,87,88,91,95,96,97,103,104,105,106,107,112,113,114]
-    df_map_category_to_id = df_map_category_to_id[~df_map_category_to_id["category_id"].isin(irrelevant_categories)]
+    irrelevant_categories = [63,64,79,80,86,87,88,91,95,96,97,103,104,105,106,107,
+                             112,113,114,49,50,51,52,102,121,120]
+    if env=="dev":
+        df_map_category_to_id = pd.read_csv("TRASH/data/df_map_category_to_id.csv")
+        df_map_category_to_id = df_map_category_to_id[~df_map_category_to_id["category_id"].isin(irrelevant_categories)]
+    else:
+        df_map_category_to_id = execute_discourse_query(query_id=107, query_params=None)
+        df_map_category_to_id = df_map_category_to_id[~df_map_category_to_id["category_id"].isin(irrelevant_categories)]
     return df_map_category_to_id
 
 def load_id_username_mapping():

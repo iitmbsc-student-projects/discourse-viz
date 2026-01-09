@@ -160,15 +160,53 @@
         </ul>
     </div>
 
-    <div class="course-section" id="degree-list">
-        <h2>Degree Level</h2>
+    <!-- DEGREE COURSES FURTHER CATEGORISED -->
+    <div class="course-section" id="core-degree-list">
+        <h2>Core Degree Courses</h2>
         <ul>
-            {% for course in degree_courses %}
+            {% for course in core_degree_courses %}
             <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
-            <!-- <li><a href="/{{ course | replace(' ', '-') }}" target="_blank">{{ course }}</a></li> -->
             {% endfor %}
         </ul>
     </div>
+
+    <div class="course-section" id="degree-level-list">
+        <h2>Degree Level Courses</h2>
+        <ul>
+            {% for course in degree_level_courses %}
+            <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="course-section" id="l4-degree-list">
+        <h2>L4 Degree Courses</h2>
+        <ul>
+            {% for course in L4_degree_courses %}
+            <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="course-section" id="l5-degree-list">
+        <h2>L5 Degree Courses</h2>
+        <ul>
+            {% for course in L5_degree_courses %}
+            <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    {% if uncategorized_courses %}
+    <div class="course-section" id="uncategorized-list">
+        <h2>Uncategorized</h2>
+        <ul>
+            {% for course in uncategorized_courses %}
+            <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 </div>
 
 <div id="overall-discourse-dropdown">

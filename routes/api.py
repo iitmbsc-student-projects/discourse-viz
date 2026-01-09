@@ -9,7 +9,8 @@ from application.constants import (
     foundation_courses, 
     diploma_programming_courses, 
     diploma_data_science_courses, 
-    degree_courses
+    # degree_courses,
+    core_degree_courses,degree_level_courses,L4_degree_courses,L5_degree_courses
 )
 from core.utils import get_current_trimester
 
@@ -27,7 +28,11 @@ def index():
         foundation_courses=foundation_courses,
         diploma_programming_courses=diploma_programming_courses,
         diploma_data_science_courses=diploma_data_science_courses,
-        degree_courses=degree_courses,
+        # degree_courses=degree_courses,
+        core_degree_courses=core_degree_courses,
+        degree_level_courses=degree_level_courses,
+        L4_degree_courses=L4_degree_courses,
+        L5_degree_courses=L5_degree_courses,
         overall_discourse_charts=list(user_actions_dictionaries.keys()),  # LIST of terms (current and past)
         latest_chart=latest_term
     )
