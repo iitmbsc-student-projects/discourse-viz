@@ -69,7 +69,7 @@ def get_all_data_dicts():
     for term in curr_plus_prev_trimesters:
         # THIS LOOP IS FOR FINDIND THE REQUIRED DATA OF OVERALL DISCOURSE
         start_date, end_date = get_trimester_dates(term)
-        params = {"start_date": start_date, "end_date": end_date}
+        params = {"start_date": start_date, "end_date": end_date, "domain":"ds.study.iitm.ac.in"}
         
         user_actions_dictionaries[term]["overall"] = {
             "raw_metrics": pd.DataFrame(),
