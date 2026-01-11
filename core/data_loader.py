@@ -144,7 +144,7 @@ def refresh_all_data():
             user_actions_dictionaries[trimester_corresponding_to_today][category_name]["log_normalized_scores"] = new_log_normalized_scores_df
             
     # Updating data for overall engagement
-    query_params_for_102 = {"start_date": last_refresh_date, "end_date": today}
+    query_params_for_102 = {"start_date": last_refresh_date, "end_date": today, "domain":"ds.study.iitm.ac.in"}
     latest_raw_metrics_for_overall_engagement = execute_discourse_query(102, query_params = query_params_for_102)
     existing_raw_metrics_for_overall_engagement = user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["raw_metrics"]
 
