@@ -53,12 +53,43 @@
 {% block content %}
 <h1>Search Details for a Specific User</h1>
 
-<div class="search-container">
-    <textarea id="username" placeholder="Enter username"></textarea>
-    <button onclick="searchUser()">Search</button>
-</div>
+<form onsubmit="event.preventDefault(); searchUser();"
+      style="display: flex; justify-content: center; gap: 12px; margin-top: 40px;">
 
-<div id="results"></div>
+    <input
+        type="text"
+        id="username"
+        placeholder="Enter username"
+        style="
+            width: 320px;
+            padding: 12px 14px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            outline: none;
+        "
+    />
+
+    <button
+        type="submit"
+        style="
+            padding: 12px 22px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        "
+        onmouseover="this.style.backgroundColor='#0056b3'"
+        onmouseout="this.style.backgroundColor='#007bff'"
+    >
+        Search
+    </button>
+</form>
+
+<div id="results" style="margin-top: 40px;"></div>
 
 <script>
     function createTableFromObject(obj) {
@@ -96,26 +127,30 @@ async function searchUser() {
     // 🚨 Not logged in
     if (response.status === 401) {
         const data = await response.json();
-
-        const resultsDiv = document.getElementById('results');
-
-        resultsDiv.innerHTML = `
-    <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
-        <div style="background-color: lightgreen; padding: 12px;">
-            <h3>Basic Metrics</h3>
-            ${Array.isArray(data.basic_metrics) ? createTableFromObject(data.basic_metrics) : `<pre>${JSON.stringify(data.basic_metrics, null, 2)}</pre>`}
-        </div>
-        <div style="background-color:#FFCF79; padding: 12px;">
-            <h3>Top Categories</h3>
-            ${Array.isArray(data.top_categories) ? createTableFromObject(data.top_categories) : `<pre>${JSON.stringify(data.top_categories, null, 2)}</pre>`}
-        </div>
-        <div style="background-color:#E5E4D7; padding: 12px;">
-            <h3>Most Liked By</h3>
-            ${Array.isArray(data.most_liked_by) ? createTableFromObject(data.most_liked_by) : `<pre>${JSON.stringify(data.most_liked_by, null, 2)}</pre>`}
-        </div>
-    </div>
-`;
-
+        alert(data.message); // "You are not logged in"
+        window.location.href = "/login"; // or account chooser page
+        return;
     }
+
+    const data = await response.json();
+    const resultsDiv = document.getElementById('results');
+
+    resultsDiv.innerHTML = `
+        <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+            <div style="background-color: lightgreen; padding: 12px;">
+                <h3>Basic Metrics</h3>
+                ${Array.isArray(data.basic_metrics) ? createTableFromObject(data.basic_metrics) : ""}
+            </div>
+            <div style="background-color:#FFCF79; padding: 12px;">
+                <h3>Top Categories</h3>
+                ${Array.isArray(data.top_categories) ? createTableFromObject(data.top_categories) : ""}
+            </div>
+            <div style="background-color:#E5E4D7; padding: 12px;">
+                <h3>Most Liked By</h3>
+                ${Array.isArray(data.most_liked_by) ? createTableFromObject(data.most_liked_by) : ""}
+            </div>
+        </div>
+    `;
+}
 </script>
 {% endblock %}
