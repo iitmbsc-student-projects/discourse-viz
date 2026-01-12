@@ -5,17 +5,20 @@ Handles user search, user details, and user-specific functionality.
 
 from flask import Blueprint, render_template, jsonify
 from user_summary.user_summary_functions import get_user_summary, get_basic_metrics, get_top_categories, get_liked_by_users
+from core.auth import login_required
 
 users_bp = Blueprint('users', __name__)
 
 
 @users_bp.route('/search_user')
+@login_required
 def search_user():
     """Route invoked when user clicks on "Search User" button"""
     return render_template('user.html')
 
 
 @users_bp.route("/user_details/<user_name>", methods=["GET"])
+@login_required
 def get_user_details(user_name):
     """
     This function fetches the user details for a given username.

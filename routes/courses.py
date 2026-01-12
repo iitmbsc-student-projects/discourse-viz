@@ -3,6 +3,7 @@ Course-specific routes for the Flask application.
 Handles course pages and course-related data endpoints.
 """
 
+from core.auth import login_required
 from flask import Blueprint, render_template
 from core.utils import get_current_trimester, get_previous_trimesters
 from processors.course_data_processors import get_top_10_first_responders, get_top_10_first_responders, get_trending_topics_from_useractions_df
@@ -11,6 +12,7 @@ courses_bp = Blueprint('courses', __name__)
 
 
 @courses_bp.route("/<course_name>")
+@login_required
 def course_page(course_name):
     """Main course page route"""
     course_name_original = course_name
@@ -33,6 +35,7 @@ def course_page(course_name):
 
 
 @courses_bp.route("/get_most_frequent_first_responders/<course_name>", methods=["GET"])
+@login_required
 def most_frequent_first_responders(course_name):
     """Fetch the most frequent first responders for a given course."""
     try:
@@ -51,6 +54,7 @@ def most_frequent_first_responders(course_name):
 
 
 @courses_bp.route("/most_trending_topics/<course_name>", methods=["GET"])
+@login_required
 def most_trending_topics(course_name):
     """
     Fetch the most trending topics for a given course.

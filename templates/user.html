@@ -79,11 +79,22 @@
         return html;
     }
 
-    async function searchUser() {
-        const username = document.getElementById('username').value.trim();
-        if (!username) return alert("Please enter a username");
+async function searchUser() {
+    const username = document.getElementById('username').value.trim();
+    if (!username) {
+        alert("Please enter a username");
+        return;
+    }
 
-        const response = await fetch(`/user_details/${username}`);
+    const response = await fetch(`/user_details/${username}`, {
+        headers: {
+            "Accept": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    });
+
+    // 🚨 Not logged in
+    if (response.status === 401) {
         const data = await response.json();
 
         const resultsDiv = document.getElementById('results');

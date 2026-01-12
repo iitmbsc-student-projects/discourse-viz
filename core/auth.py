@@ -1,7 +1,24 @@
 # auth.py
 import os
-from flask import url_for, redirect, session, request, flash
+from flask import url_for, redirect, session, request, flash, jsonify
 from authlib.integrations.flask_client import OAuth
+from functools import wraps
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            # If request expects JSON (fetch / AJAX)
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.accept_mimetypes.best == "application/json":
+                return jsonify({
+                    "error": "not_authenticated",
+                    "message": "You are not logged in"
+                }), 401
+
+            # Normal browser request
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def init_oauth(app):
     """
