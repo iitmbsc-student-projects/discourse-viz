@@ -28,7 +28,7 @@ def get_all_data_dicts():
                 try:
                     category_id = row.category_id
                     if env == "dev":
-                        if not (category_id==26): continue # REMOVE FROM FINAL DEPLOYMENT # CHANGED FOR TESTING
+                        if not (category_id==26): continue
                     category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
                     if category_name not in user_actions_dictionaries[key]:
                         user_actions_dictionaries[key][category_name] = {}
@@ -40,12 +40,7 @@ def get_all_data_dicts():
                     start_date, end_date = get_trimester_dates(term)
                     params = {"category_id": str(category_id), "start_date": start_date, "end_date": end_date}
                     
-                    start = time.time()
                     user_actions_df, raw_metrics_df, unnormalized_scores_df, log_normalized_scores_df = get_course_specific_dataframes(query_params=tuple(params.items()))
-                    end = time.time()
-                    """with open("time_log.txt", "a") as f: # REMOVE FROM DEPLOYMENT
-                        print(f"get_course_specific_dataframes | course={category_name} | term={term}: {round(end - start,2)} seconds\n")
-                        f.write(f"get_course_specific_dataframes | course={category_name} | term={term}: {round(end - start,2)} seconds\n")"""
 
                     # if not user_actions_df.empty and len(user_actions_df)>75: # THIS WILL BE IMPLEMENTED LATER AFTER DISCUSSION
                     user_actions_dictionaries[key][category_name]["user_actions_df"] = user_actions_df

@@ -20,7 +20,8 @@ last_refresh_date = datetime.now().strftime("%d-%m-%Y")
 # DATA LOADER FUNCTIONS
 def load_user_actions_dictionaries():
     from core.data_processor import get_all_data_dicts
-    return get_all_data_dicts()
+    data_dicts = get_all_data_dicts()
+    return data_dicts
 
 def load_df_map_category_to_id():
     irrelevant_categories = [63,64,79,80,86,87,88,91,95,96,97,103,104,105,106,107,
@@ -36,9 +37,9 @@ def load_df_map_category_to_id():
 def load_id_username_mapping():
     from core.execute_query import execute_discourse_query
     if env=="dev":
-        df = pd.read_csv("TRASH/data/id_username_mapping.csv") # REMOVE IN FINAL DEPLOYMENT # CHANGED FOR TESTING
+        df = pd.read_csv("TRASH/data/id_username_mapping.csv") # FOR TESTING ONLY
     else:
-        df = execute_discourse_query(query_id=108, query_params=None) # UNCOMMENT IN FINAL DEPLOYMENT
+        df = execute_discourse_query(query_id=108, query_params=None)
     return df
 
 def init_minimal_data():
