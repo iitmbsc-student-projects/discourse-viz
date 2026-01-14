@@ -1,6 +1,7 @@
 import pandas as pd
 from core.utils import sanitize_filepath, get_current_trimester, get_previous_trimesters
 from datetime import datetime
+from core.logging_config import get_logger
 
 from application.constants import weights_dict_for_overall_engagement, env
 from core.execute_query import execute_discourse_query
@@ -9,6 +10,8 @@ from processors.course_data_processors import (create_raw_metrics_dataframe,
 
 from processors.overall_discourseData_processors import (
                                 create_log_normalized_scores_dataframe_for_all_users, create_unnormalized_scores_dataframe_for_all_users)
+
+logger = get_logger("core.data_loader")
 
 # Global state (initialized by init_minimal_data / background_load_user_actions)
 user_actions_dictionaries = {}
@@ -60,17 +63,16 @@ def init_minimal_data():
         }
         for term in current_and_prev_terms
     }
-    print(f"Keys in user_actions_dictionaries after minimal init: {list(user_actions_dictionaries.keys())}")
+    logger.info(f"Initialized data structures | function: init_minimal_data | terms: {list(user_actions_dictionaries.keys())}")
     return df_map_category_to_id, id_username_mapping, user_actions_dictionaries
 
 def background_load_user_actions():
     global user_actions_dictionaries, user_actions_loaded
-    print("Before background load:", user_actions_loaded)
-    print("Starting background loading of user_actions_dictionaries...")
+    logger.info(f"Starting data loading | function: background_load_user_actions | user_actions_loaded_before: {user_actions_loaded}")
+    logger.info(f"Background loading started | function: background_load_user_actions")
     user_actions_dictionaries = load_user_actions_dictionaries()  # ~20 min
     user_actions_loaded = True
-    print("Background loading completed.")
-    print("After background load:", user_actions_loaded)
+    logger.info(f"Background loading completed | function: background_load_user_actions | user_actions_loaded_after: {user_actions_loaded}")
     return user_actions_dictionaries
 
 def get_user_actions_loaded():
@@ -97,11 +99,11 @@ def refresh_all_data():
     trimester_corresponding_to_today = get_current_trimester()
     trimester_data_to_be_removed = get_previous_trimesters(trimester_corresponding_to_today)[3]
     user_actions_dictionaries.pop(trimester_data_to_be_removed, None)
-    print("User actions dictionaries keys: ", user_actions_dictionaries.keys())
+    logger.info(f"Refresh started | function: refresh_all_data | today: {today} | terms: {list(user_actions_dictionaries.keys())}")
 
     # NEW: Initialize new trimester if it doesn't exist; BUG fixed on 28-DEC-2025
     if trimester_corresponding_to_today not in user_actions_dictionaries:
-        print(f"New trimester detected: {trimester_corresponding_to_today}. Initializing structure...")
+        logger.info(f"New trimester detected | function: refresh_all_data | trimester: {trimester_corresponding_to_today}")
         user_actions_dictionaries[trimester_corresponding_to_today] = {}
         
         # Initialize course structures
@@ -125,12 +127,12 @@ def refresh_all_data():
         category_id = row.category_id
         category_name = sanitize_filepath(row.name).lower()
         if category_name not in user_actions_dictionaries[trimester_corresponding_to_today]:
-            print(f"Inside refresh function for date = {today}\n{category_name} not found in user_actions_dictionaries for trimester {trimester_corresponding_to_today}")
+            logger.warning(f"Category not found | function: refresh_all_data | date: {today} | course: {category_name} | term: {trimester_corresponding_to_today}")
             continue
         query_params_for_103 = {"category_id": str(category_id), "start_date": last_refresh_date, "end_date": today}
 
         latest_user_actions_df = execute_discourse_query(103, query_params=query_params_for_103)
-        print(f"Inside refresh function for date = {today}\nLatest user actions dataframe for {category_name} has {len(latest_user_actions_df)} rows")
+        logger.info(f"Course data fetched | function: refresh_all_data | date: {today} | course: {category_name} | rows: {len(latest_user_actions_df)}")
         if not latest_user_actions_df.empty:
             existing_user_actions_df = user_actions_dictionaries[trimester_corresponding_to_today][category_name]["user_actions_df"]
             new_user_actions_df = pd.concat([existing_user_actions_df, latest_user_actions_df]).drop_duplicates()
@@ -160,4 +162,4 @@ def refresh_all_data():
     user_actions_dictionaries[trimester_corresponding_to_today]["overall"]["log_normalized_scores"] = new_log_normalized_scores_dataframe_all_users
 
     last_refresh_date = today
-    print(f"Data refreshed successfully for {trimester_corresponding_to_today} trimester. Last refresh date is now set to {last_refresh_date}.")
+    logger.info(f"Data refresh completed | function: refresh_all_data | term: {trimester_corresponding_to_today} | last_refresh_date: {last_refresh_date}")

@@ -9,8 +9,11 @@ def get_all_data_dicts():
     from processors.course_data_processors import get_course_specific_dataframes
     from processors.overall_discourseData_processors import get_overall_engagement_df
     from application.constants import env
+    from core.logging_config import get_logger
     
     from core.data_loader import get_df_map_category_to_id
+    
+    logger = get_logger("core.data_loader")
     df_map_category_to_id = get_df_map_category_to_id()
 
     curr_plus_prev_trimesters = get_previous_trimesters(get_current_trimester())[:3] # The items of this list will act as keys of the dictionary; elements are terms in descending order, like current(t2-2025), previous(t1-2025), t3-2024 and so on # CHANGED FOR TESTING
@@ -28,7 +31,7 @@ def get_all_data_dicts():
                 try:
                     category_id = row.category_id
                     if env == "dev":
-                        if not (category_id==26): continue
+                        if not (category_id==18): continue
                     category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
                     if category_name not in user_actions_dictionaries[key]:
                         user_actions_dictionaries[key][category_name] = {}
@@ -52,11 +55,11 @@ def get_all_data_dicts():
                     user_actions_dictionaries[key][category_name]["log_normalized_scores"] = log_normalized_scores_df
 
                 except Exception as exec:
-                    print(f"Error: {exec} for subject: {category_name} for term: {term}")
+                    logger.error(f"Error processing course data | function: get_all_data_dicts | course: {category_name} | term: {term} | error: {exec}", extra={"course": category_name, "term": term}, exc_info=True)
                     error_list.append((key,category_name,exec))
                     continue
         except Exception as exec:
-            print(f"Error: {exec} for term: {term}")
+            logger.error(f"Error processing term data | function: get_all_data_dicts | term: {term} | error: {exec}", extra={"term": term}, exc_info=True)
             error_list.append(term)
             continue
 
@@ -78,11 +81,14 @@ def get_all_data_dicts():
             user_actions_dictionaries[term]["overall"]["unnormalized_scores"] = unnormalized_scores_all_users_df
             user_actions_dictionaries[term]["overall"]["log_normalized_scores"] = log_normalized_scores_all_users_df
         except Exception as exec:
-            print(f"Error: {exec} for term: {term}")
+            logger.error("Error processing overall engagement data", extra={"term": term}, exc_info=True)
             error_list.append(term)
             continue
     
-    if error_list: print(error_list)
+    if error_list:
+        logger.warning("Data loading completed with errors", extra={"error_count": len(error_list), "errors": str(error_list)[:500]})
+    else:
+        logger.info("Data loading completed successfully", extra={"terms": list(user_actions_dictionaries.keys())})
     return user_actions_dictionaries # MOST IMP VARIABLE IN THE WHOLE CODE
 
 if __name__=="__main__":

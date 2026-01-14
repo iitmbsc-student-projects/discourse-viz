@@ -2,6 +2,9 @@ from flask import Flask
 import os, threading
 from apscheduler.schedulers.background import BackgroundScheduler
 
+# Logging
+from core.logging_config import init_logging
+
 # Imports from other files
 from core.auth import init_oauth, register_auth_routes
 from application.config import Config
@@ -11,6 +14,7 @@ import core.data_loader as data_loader
 from routes import register_all_routes
 
 # GLOBAL VARIABLES & FLAGS
+init_logging()
 app = Flask(__name__)
 app.config.from_object(Config)
 

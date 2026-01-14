@@ -1,19 +1,30 @@
 import time, requests, json
+import logging
 import pandas as pd
 from application.constants import env, API_USERNAME, GROUP_NAME, DISCOURSE_BASE_URL, API_KEY
+from core.logging_config import get_logger
 
 
 def execute_discourse_query(query_id, query_params=None):
+    logger_map = {
+        102: get_logger("query.102"),
+        103: get_logger("query.103"),
+        107: get_logger("query.107"),
+        108: get_logger("query.108"),
+    }
+    logger = logger_map.get(query_id, get_logger("query"))
+
     match query_id:
-        case 103: print("Executing query_103 for course-specific user actions | params:", query_params)
-        case 102: print("Executing query_102 for overall discourse engagement | params:", query_params)
-        case 107: print("Executing query_107 FOR FETCHING CATEGORY_IDS")
-        case 108: print("Executing query_108 for userid-name mapping")
+        case 103: logger.info("Executing query_103 for course-specific user actions", extra={"params_provided": bool(query_params)})
+        case 102: logger.info("Executing query_102 for overall discourse engagement", extra={"params_provided": bool(query_params)})
+        case 107: logger.info("Executing query_107 for fetching category IDs")
+        case 108: logger.info("Executing query_108 for userid-name mapping")
         case _: raise ValueError("INVALID DISCOURSE QUERY-ID")
     
     iteration_count = 0  # Initialize iteration counter
     results_list = []  # List to store results
     has_more_results = True  # Flag to control the loop for pagination
+    start_time = time.perf_counter()
 
     # Check if query_params is provided
     if query_params is None:
@@ -45,6 +56,7 @@ def execute_discourse_query(query_id, query_params=None):
 
         try:
             # Send POST request to the API
+            logger.debug("Fetching page", extra={"query_id": query_id, "page": iteration_count})
             response = requests.request("POST", request_url, data=data_payload, headers=headers)
             response.raise_for_status()  # Raise an error for bad responses
 
@@ -52,6 +64,7 @@ def execute_discourse_query(query_id, query_params=None):
 
             # Check if there are no results
             if json_response["result_count"] == 0:
+                logger.warning("Query returned zero results", extra={"query_id": query_id, "page": iteration_count})
                 has_more_results = False  # No more results to fetch
                 break
 
@@ -63,10 +76,20 @@ def execute_discourse_query(query_id, query_params=None):
         except Exception as e:
             # Check for specific 429 error in the exception message
             if "429" in str(e) and "Too Many Requests" in str(e):
-                raise RuntimeError(f"**********\nStopping execution due to rate limiting\nERROR: {e} for query_id = {query_id}\nQUERY_PARAMS = {query_params}\n**********")
+                logger.error(
+                    "Rate limited (429) while executing query",
+                    extra={"query_id": query_id, "page": iteration_count, "params_provided": bool(query_params)},
+                    exc_info=True,
+                )
+                raise RuntimeError(
+                    f"**********\nStopping execution due to rate limiting\nERROR: {e} for query_id = {query_id}\nQUERY_PARAMS = {query_params}\n**********"
+                )
             else:
                 # Log other exceptions
-                print(f"**********\nStopping execution due to\nERROR: {e} for query_id = {query_id}\nQUERY_PARAMS = {query_params}\n**********")
+                logger.exception(
+                    "Error while executing query",
+                    extra={"query_id": query_id, "page": iteration_count, "params_provided": bool(query_params)},
+                )
 
 
         iteration_count += 1  # Increment iteration count for pagination
@@ -75,12 +98,14 @@ def execute_discourse_query(query_id, query_params=None):
         time.sleep(1.2)  # Wait before the next request
 
     results_dataframe = pd.DataFrame(results_list)  # Convert results list to DataFrame
+    duration = time.perf_counter() - start_time
+    logger.info(
+        "Completed query",
+        extra={
+            "query_id": query_id,
+            "rows": len(results_dataframe),
+            "pages": iteration_count + 1,
+            "duration_sec": round(duration, 2),
+        },
+    )
     return results_dataframe  # Return the DataFrame with results
-
-
-if __name__ == "__main__":
-    from datetime import datetime
-    x = datetime.now().strftime("%d-%m-%Y")
-    print(x)
-    query_params_for_103 = {"category_id": str(26), "start_date": x, "end_date": "15/09/2025"}
-    print(len(execute_discourse_query(103, query_params={})))
