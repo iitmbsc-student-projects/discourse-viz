@@ -374,7 +374,7 @@ def refresh_all_data():
     """
     Perform incremental daily data refresh (delta updates).
     
-    This function runs at 3:30 AM on all days EXCEPT trimester start dates.
+    This function runs at 3:15 AM on all days EXCEPT trimester start dates.
     Safety check: If accidentally triggered on a trimester start date, it exits early.
     
     On regular days:
