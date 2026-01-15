@@ -2,14 +2,28 @@ import pandas as pd
 from core.utils import sanitize_filepath, get_current_trimester, get_previous_trimesters
 from datetime import datetime
 from core.logging_config import get_logger
-
-from application.constants import weights_dict_for_overall_engagement, env
+from itertools import chain
+from application.constants import (
+    weights_dict_for_overall_engagement,
+    env,
+    foundation_courses,
+    diploma_programming_courses,
+    diploma_data_science_courses,
+    core_degree_courses,
+    degree_level_courses,
+    L4_degree_courses,
+    L5_degree_courses,
+)
 from core.execute_query import execute_discourse_query
-from processors.course_data_processors import (create_raw_metrics_dataframe,
-                                     create_unnormalized_scores_dataframe,create_log_normalized_scores_dataframe)
-
+from processors.course_data_processors import (
+    create_raw_metrics_dataframe,
+    create_unnormalized_scores_dataframe,
+    create_log_normalized_scores_dataframe,
+)
 from processors.overall_discourseData_processors import (
-                                create_log_normalized_scores_dataframe_for_all_users, create_unnormalized_scores_dataframe_for_all_users)
+    create_log_normalized_scores_dataframe_for_all_users,
+    create_unnormalized_scores_dataframe_for_all_users,
+)
 
 logger = get_logger("core.data_loader")
 
@@ -19,31 +33,62 @@ df_map_category_to_id = None
 id_username_mapping = None
 user_actions_loaded = False
 last_refresh_date = datetime.now().strftime("%d-%m-%Y")
+uncategorized_courses = []  # New global list to store uncategorized courses
 
 # DATA LOADER FUNCTIONS
 def load_user_actions_dictionaries():
     from core.data_processor import get_all_data_dicts
+
     data_dicts = get_all_data_dicts()
     return data_dicts
 
+
 def load_df_map_category_to_id():
-    irrelevant_categories = [63,64,79,80,86,87,88,91,95,96,97,103,104,105,106,107,
-                             112,113,114,49,50,51,52,102,121,120]
-    if env=="dev":
+    global uncategorized_courses
+
+    irrelevant_categories = [63, 64, 79, 80, 86, 87, 88, 91, 95, 96, 97, 103, 104, 105, 106, 107, 112, 113, 114, 49, 50, 51, 52, 102, 121, 120]
+    if env == "dev":
         df_map_category_to_id = pd.read_csv("TRASH/data/df_map_category_to_id.csv")
         df_map_category_to_id = df_map_category_to_id[~df_map_category_to_id["category_id"].isin(irrelevant_categories)]
     else:
         df_map_category_to_id = execute_discourse_query(query_id=107, query_params=None)
         df_map_category_to_id = df_map_category_to_id[~df_map_category_to_id["category_id"].isin(irrelevant_categories)]
+
+    # Create union of all known courses (case-insensitive)
+    all_known_courses = set(
+        course.strip().lower()
+        for course in chain(
+            foundation_courses,
+            diploma_programming_courses,
+            diploma_data_science_courses,
+            core_degree_courses,
+            degree_level_courses,
+            L4_degree_courses,
+            L5_degree_courses,
+        )
+    )
+
+    # Find uncategorized courses
+    uncategorized_courses = [
+        row.name
+        for row in df_map_category_to_id.itertuples()
+        if row.name.strip().lower() not in all_known_courses
+    ]
+
+    logger.info(f"Found {len(uncategorized_courses)} uncategorized courses | function: load_df_map_category_to_id")
+
     return df_map_category_to_id
+
 
 def load_id_username_mapping():
     from core.execute_query import execute_discourse_query
-    if env=="dev":
-        df = pd.read_csv("TRASH/data/id_username_mapping.csv") # FOR TESTING ONLY
+
+    if env == "dev":
+        df = pd.read_csv("TRASH/data/id_username_mapping.csv")  # FOR TESTING ONLY
     else:
         df = execute_discourse_query(query_id=108, query_params=None)
     return df
+
 
 def init_minimal_data():
     global df_map_category_to_id, id_username_mapping, user_actions_dictionaries
@@ -66,30 +111,40 @@ def init_minimal_data():
     logger.info(f"Initialized data structures | function: init_minimal_data | terms: {list(user_actions_dictionaries.keys())}")
     return df_map_category_to_id, id_username_mapping, user_actions_dictionaries
 
+
 def background_load_user_actions():
     global user_actions_dictionaries, user_actions_loaded
     logger.info(f"Starting data loading | function: background_load_user_actions | user_actions_loaded_before: {user_actions_loaded}")
     logger.info(f"Background loading started | function: background_load_user_actions")
-    user_actions_dictionaries = load_user_actions_dictionaries()  # ~20 min
+    user_actions_dictionaries = load_user_actions_dictionaries()  # ~30 min
     user_actions_loaded = True
     logger.info(f"Background loading completed | function: background_load_user_actions | user_actions_loaded_after: {user_actions_loaded}")
     return user_actions_dictionaries
+
 
 def get_user_actions_loaded():
     """Helper function to check if user actions are loaded"""
     return user_actions_loaded
 
+
 def get_user_actions_dictionaries():
     """Helper function to get user actions dictionaries"""
     return user_actions_dictionaries
+
 
 def get_df_map_category_to_id():
     """Helper function to get category mapping"""
     return df_map_category_to_id
 
+
 def get_id_username_mapping():
     """Helper function to get username mapping"""
     return id_username_mapping
+
+
+def get_uncategorized_courses():
+    """Helper function to get uncategorized courses"""
+    return uncategorized_courses
 
 
 # DATA REFRESH FUNCTION
