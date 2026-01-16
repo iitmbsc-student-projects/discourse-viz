@@ -41,6 +41,7 @@ _backup_user_actions_dictionaries = None
 _backup_df_map_category_to_id = None
 _backup_id_username_mapping = None
 _backup_last_refresh_date = None
+_backup_uncategorized_courses = None  # NEW: backup for uncategorized list
 
 # Flag to indicate full system reset failure - used by alerting mechanism
 system_reset_failed = False
@@ -185,8 +186,8 @@ def _backup_current_state():
     This is used as a fallback if the reset fails - allows users to continue
     accessing old data instead of experiencing complete system downtime.
     """
-    global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
-    global _backup_user_actions_dictionaries, _backup_df_map_category_to_id, _backup_id_username_mapping, _backup_last_refresh_date
+    global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date, uncategorized_courses
+    global _backup_user_actions_dictionaries, _backup_df_map_category_to_id, _backup_id_username_mapping, _backup_last_refresh_date, _backup_uncategorized_courses
     
     import copy
     
@@ -195,7 +196,7 @@ def _backup_current_state():
     _backup_df_map_category_to_id = df_map_category_to_id.copy() if df_map_category_to_id is not None else None
     _backup_id_username_mapping = id_username_mapping.copy() if id_username_mapping is not None else None
     _backup_last_refresh_date = last_refresh_date
-    
+    _backup_uncategorized_courses = list(uncategorized_courses) if uncategorized_courses is not None else []  # NEW
     logger.info("State backup created | function: _backup_current_state")
 
 
@@ -206,14 +207,14 @@ def _restore_from_backup():
     This ensures users can access old data instead of experiencing complete downtime.
     The system will show old data while developers investigate the reset failure.
     """
-    global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
-    global _backup_user_actions_dictionaries, _backup_df_map_category_to_id, _backup_id_username_mapping, _backup_last_refresh_date
+    global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date, uncategorized_courses
+    global _backup_user_actions_dictionaries, _backup_df_map_category_to_id, _backup_id_username_mapping, _backup_last_refresh_date, _backup_uncategorized_courses
     
     user_actions_dictionaries = _backup_user_actions_dictionaries
     df_map_category_to_id = _backup_df_map_category_to_id
     id_username_mapping = _backup_id_username_mapping
     last_refresh_date = _backup_last_refresh_date
-    
+    uncategorized_courses = _backup_uncategorized_courses  # NEW
     logger.info("State restored from backup | function: _restore_from_backup")
 
 
@@ -334,11 +335,19 @@ def full_system_reset():
         system_reset_failed = False
         system_reset_failure_reason = None
         logger.info(f"User actions loading flag set to True | function: full_system_reset")
-        
+
+        # Explicitly clear backups to free memory (NEW)
+        global _backup_user_actions_dictionaries, _backup_df_map_category_to_id, _backup_id_username_mapping, _backup_last_refresh_date, _backup_uncategorized_courses
+        _backup_user_actions_dictionaries = None
+        _backup_df_map_category_to_id = None
+        _backup_id_username_mapping = None
+        _backup_last_refresh_date = None
+        _backup_uncategorized_courses = None
+        logger.info("Backup data cleared from memory | function: full_system_reset")
+
         logger.info("=" * 80)
         logger.info("FULL SYSTEM RESET COMPLETED SUCCESSFULLY")
         logger.info("=" * 80)
-        
     except Exception as e:
         # Recommendation: On failure, restore backup and allow users to access old data
         # This provides graceful degradation instead of complete system downtime
@@ -374,7 +383,7 @@ def refresh_all_data():
     """
     Perform incremental daily data refresh (delta updates).
     
-    This function runs at 3:30 AM on all days EXCEPT trimester start dates.
+    This function runs at 3:15 AM on all days EXCEPT trimester start dates.
     Safety check: If accidentally triggered on a trimester start date, it exits early.
     
     On regular days:
@@ -387,12 +396,20 @@ def refresh_all_data():
     - Removes oldest trimester (4 trimesters back) from memory
     - Initializes new trimester structures if detected
     """
-    # Safety check: Skip incremental refresh on trimester start dates
-    # Recommendation: Prevent overlap between full reset and incremental refresh jobs
+    global _backup_user_actions_dictionaries, _backup_df_map_category_to_id, _backup_id_username_mapping, _backup_last_refresh_date, _backup_uncategorized_courses
+    
+    # Safety check for trimester start
     if is_trimester_start_today():
-        logger.warning("Trimester start date detected - skipping incremental refresh (full system reset should run instead)")
-        logger.warning("function: refresh_all_data | action: SKIPPED")
+        logger.warning("Trimester start date detected - skipping incremental refresh (full system reset should run instead | function: refresh_all_data")
         return
+    
+    # Clear any leftover backups from previous reset attempts
+    _backup_user_actions_dictionaries = None
+    _backup_df_map_category_to_id = None
+    _backup_id_username_mapping = None
+    _backup_last_refresh_date = None
+    _backup_uncategorized_courses = None  # NEW: clear leftover backup
+    logger.info("Cleared backup memory | function: refresh_all_data")
     
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date
     today = datetime.now().strftime("%d-%m-%Y")
