@@ -113,6 +113,9 @@ The placeholder function `_alert_developer_of_reset_failure()` needs implementat
 
 ### Option 1: Google Chat Webhook
 ```python
+from core.utils import get_current_trimester
+from datetime import datetime
+
 def _alert_developer_of_reset_failure(error_message):
     import requests
     import os
@@ -131,6 +134,7 @@ def _alert_developer_of_reset_failure(error_message):
 
 ### Option 2: Email via SMTP
 ```python
+import os
 def _alert_developer_of_reset_failure(error_message):
     import smtplib
     from email.mime.text import MIMEText
@@ -151,6 +155,9 @@ def _alert_developer_of_reset_failure(error_message):
 
 ### Option 3: Slack Webhook
 ```python
+from core.utils import get_current_trimester
+import os
+from datetime import datetime
 def _alert_developer_of_reset_failure(error_message):
     import requests
     

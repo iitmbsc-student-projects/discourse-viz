@@ -3,6 +3,7 @@ from core.utils import sanitize_filepath, get_current_trimester, get_previous_tr
 from datetime import datetime
 from core.logging_config import get_logger
 from itertools import chain
+import copy
 from application.constants import (
     weights_dict_for_overall_engagement,
     env,
@@ -188,8 +189,6 @@ def _backup_current_state():
     """
     global user_actions_dictionaries, df_map_category_to_id, id_username_mapping, last_refresh_date, uncategorized_courses
     global _backup_user_actions_dictionaries, _backup_df_map_category_to_id, _backup_id_username_mapping, _backup_last_refresh_date, _backup_uncategorized_courses
-    
-    import copy
     
     # Deep copy current state to preserve it in case reset fails
     _backup_user_actions_dictionaries = copy.deepcopy(user_actions_dictionaries)
