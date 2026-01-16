@@ -199,7 +199,7 @@
 
     {% if uncategorized_courses %}
     <div class="course-section" id="uncategorized-list">
-        <h2>Uncategorized</h2>
+        <h2>Uncategorized Courses</h2>
         <ul>
             {% for course in uncategorized_courses %}
             <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>

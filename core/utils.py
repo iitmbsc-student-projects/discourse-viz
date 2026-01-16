@@ -81,3 +81,20 @@ def get_previous_trimesters(current_trimester):
         result.append(f"{trimesters[index]}-{year}")
     
     return [current_trimester]+result # ['t2-2025', 't1-2025', 't3-2024', 't2-2024']
+
+def is_trimester_start_today():
+    """
+    Check if today is the first day of a trimester (Jan 1, May 1, or Sep 1).
+    
+    Returns:
+        bool: True if today is Jan 1, May 1, or Sep 1; False otherwise.
+    
+    This function is used to trigger full system reset at trimester boundaries,
+    ensuring that all mappings (courses, users) and data are recalculated from scratch,
+    allowing discovery of new courses and new users enrolled in the system.
+    """
+    today = date.today()
+    # Trimester start dates: Jan 1 (t1), May 1 (t2), Sep 1 (t3)
+    return (today.month == 1 and today.day == 1) or \
+           (today.month == 5 and today.day == 1) or \
+           (today.month == 9 and today.day == 1)

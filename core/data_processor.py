@@ -2,7 +2,6 @@
 def get_all_data_dicts():
     import pandas as pd
     import numpy as np
-    import time
 
     # Imports from other programs
     from core.utils import sanitize_filepath, get_current_trimester, get_previous_trimesters, get_trimester_dates
