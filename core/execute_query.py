@@ -120,6 +120,10 @@ def execute_discourse_query(query_id, query_params=None):
                                     },
                                     exc_info=True,
                                 )
+                                _alert_developer_of_reset_failure(
+                                    "Rate limiting",
+                                     f"function: execute_discourse_query | query_id: {query_id} | page: {iteration_count} | params: {query_params} | error: {retry_error}"
+                                )
                                 raise RuntimeError(
                                     f"**********\nStopping execution due to persistent rate limiting\nERROR: {retry_error} for query_id = {query_id}\nQUERY_PARAMS = {query_params}\nMax retries ({max_retries}) exceeded\n**********"
                                 ) from retry_error
@@ -138,12 +142,20 @@ def execute_discourse_query(query_id, query_params=None):
                         "status_code": status_code,
                     },
                 )
+                _alert_developer_of_reset_failure(
+                    "HTTP error",
+                    f"function: execute_discourse_query | query_id: {query_id} | page: {iteration_count} | params: {query_params} | status_code: {status_code} | error: {e}"
+                )
                 has_more_results = False  # Stop pagination on non-429 errors
         except requests.exceptions.RequestException as e:
             # Non-HTTP request errors (connection, timeout, etc.)
             logger.exception(
                 f"Request error while executing query | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params} | page: {iteration_count}",
                 extra={"query_id": query_id, "page": iteration_count, "params_provided": bool(query_params)},
+            )
+            _alert_developer_of_reset_failure(
+                "Request error",
+                f"function: execute_discourse_query | query_id: {query_id} | page: {iteration_count} | params: {query_params} | error: {e}"
             )
             has_more_results = False  # Stop pagination after request failure
             break
@@ -152,6 +164,10 @@ def execute_discourse_query(query_id, query_params=None):
             logger.exception(
                 f"Unexpected error while executing query | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params} | page: {iteration_count}",
                 extra={"query_id": query_id, "page": iteration_count, "params_provided": bool(query_params)},
+            )
+            _alert_developer_of_reset_failure(
+                "Unexpected error",
+                f"function: execute_discourse_query | query_id: {query_id} | page: {iteration_count} | params: {query_params} | error: {e}"
             )
             has_more_results = False
             break

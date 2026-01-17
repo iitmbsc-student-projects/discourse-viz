@@ -118,10 +118,10 @@ def _alert_developer_of_reset_failure(alert_reason, error_message):
     message = {
         'text': f'🚨 ALERT: {alert_reason}\n\n'
                 f'Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n'
-                f'Error: {error_message}\n\n'
+                f'Full Error: {error_message}\n\n'
                 f'Action: Check logs at discourse-viz server'
     }
-    # requests.post(webhook_url, json=message)
+    requests.post(webhook_url, json=message)
     
     logger.warning(f"DEVELOPER ALERT: Full system reset failed | error: {error_message} | function: _alert_developer_of_reset_failure")
     logger.warning("TODO: Implement email/g-chat alerting in _alert_developer_of_reset_failure()")
