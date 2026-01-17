@@ -38,7 +38,7 @@ def create_stacked_bar_chart_for_overall_engagement(raw_metrics, term):
         )
         return chart
     else:
-        print("<h2>No non-zero metrics to display.<h2>")
+        return create_empty_chart_in_case_of_errors("No non-zero metrics to display.")
 
 def create_empty_chart():
     text="""Course was either not offered this term OR it had extremely less interactions on discourse"""

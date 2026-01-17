@@ -6,12 +6,17 @@ Contains logic for processing/manipulating user actions and generating insights.
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import logging
 
 
 from application.constants import action_to_description, weights_dict_for_course_specific_engagement, weights_dict_for_overall_engagement
 import core.data_loader as data_loader
 from core.utils import get_current_trimester
 from core.execute_query import execute_discourse_query
+from core.logging_config import get_logger
+
+logger_course = get_logger("viz.course_top10")
+logger_trending = get_logger("viz.trending_topics")
 
 
 def create_raw_metrics_dataframe(df):
@@ -90,8 +95,10 @@ def get_course_specific_dataframes(query_params):
     3. LOG-NORMALIZED SCORE: Sum of [ log1p(raw_metric) * weightage ]
     """
     query_params = dict(query_params)
+    logger_course.info("Fetching course-specific data", extra={"params_provided": bool(query_params)})
     user_actions_df = execute_discourse_query(103, query_params)
     if user_actions_df.empty:
+        logger_course.warning(f"No user actions returned for course query | function: get_course_specific_dataframes | params: {query_params}", extra={"params_provided": bool(query_params)})
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), ["no topics as of because of very low discourse activity"] # Return 3 empty DFs + one list
     
     raw_metrics_df = create_raw_metrics_dataframe(user_actions_df)
@@ -110,6 +117,7 @@ def get_top_10_first_responders(course):
     df = (user_actions_dictionaries[term][course]["user_actions_df"]).copy(deep=True)  # Make a copy to avoid modifying the original dataframe
     
     if df.empty:
+        logger_course.warning(f"Cannot compute first responders; dataframe empty | function: get_top_10_first_responders | course: {course}", extra={"course": course, "term": term})
         raise ValueError("The user actions dataframe is empty, cannot compute top respondents.")
     
     df['created_at'] = pd.to_datetime(df['created_at'])  # Convert created_at to datetime for sorting
@@ -140,6 +148,7 @@ def get_top_10_first_responders(course):
     # Count most frequent first responders
     most_freq_first_responders = first_responders_df['first_responder'].value_counts().head(10)
     most_freq_first_responders_list = list(most_freq_first_responders.items())
+    logger_course.info(f"Computed first responders | function: get_top_10_first_responders | course: {course} | term: {term} | count: {len(most_freq_first_responders_list)}", extra={"course": course, "term": term, "count": len(most_freq_first_responders_list)})
     return most_freq_first_responders_list
 
 
@@ -153,11 +162,12 @@ def get_trending_topics_from_useractions_df(course):
     df = (user_actions_dictionaries[term][course]["user_actions_df"]).copy()  # Make a copy to avoid modifying the original dataframe
     
     if df.empty:
+        logger_trending.warning(f"Cannot compute trending topics; dataframe empty | function: get_trending_topics_from_useractions_df | course: {course} | term: {term}", extra={"course": course, "term": term})
         raise ValueError("The user actions dataframe is empty, cannot compute trending topics.")
     
     # Convert created_at to datetime for sorting
-    df['created_at'] = pd.to_datetime(df['created_at'], format='mixed')  # Handles UTC & IST
-
+    df['created_at'] = pd.to_datetime(df['created_at'], format='mixed', utc=True)  # Handles UTC & IST
+    assert df['created_at'].dt.tz is not None, "created_at column must be timezone-aware"
     # Define weights for actions
     weights = {
         'response': 0.5,
@@ -170,6 +180,7 @@ def get_trending_topics_from_useractions_df(course):
     seven_days_ago = now - timedelta(days=7)
     seven_days_ago_utc = pd.Timestamp(seven_days_ago, tz='UTC')  # Convert to UTC
     recent_topics = df[(df['action_name'] == 'new_topic') & (df['created_at'] >= seven_days_ago_utc)]
+    logger_trending.info(f"Recent topics fetched | function: get_trending_topics_from_useractions_df | course: {course} | term: {term} | count: {len(recent_topics)}")
     recent_topic_ids = set(recent_topics['target_topic_id'])
 
     # 2. Filter actions for these topics (excluding 'new_topic')
@@ -214,5 +225,6 @@ def get_trending_topics_from_useractions_df(course):
         quote_count = row.get('quote', 0)
         top_trending_list.append((topic_id, url, topic_title, int(response_count), int(like_count), int(quote_count)))
 
+    logger_trending.info(f"Computed trending topics | function: get_trending_topics_from_useractions_df | course: {course} | term: {term} | count: {len(top_trending_list)}", extra={"course": course, "term": term, "count": len(top_trending_list)})
     return top_trending_list
 

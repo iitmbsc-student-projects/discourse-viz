@@ -1,5 +1,10 @@
+import os
+import requests
 import re
 from datetime import date, datetime, timedelta
+from core.logging_config import get_logger
+
+logger = get_logger("utils")
 
 def sanitize_filepath(name):
     # Replace invalid characters with underscore
@@ -81,3 +86,42 @@ def get_previous_trimesters(current_trimester):
         result.append(f"{trimesters[index]}-{year}")
     
     return [current_trimester]+result # ['t2-2025', 't1-2025', 't3-2024', 't2-2024']
+
+def is_trimester_start_today():
+    """
+    Check if today is the first day of a trimester (Jan 1, May 1, or Sep 1).
+    
+    Returns:
+        bool: True if today is Jan 1, May 1, or Sep 1; False otherwise.
+    
+    This function is used to trigger full system reset at trimester boundaries,
+    ensuring that all mappings (courses, users) and data are recalculated from scratch,
+    allowing discovery of new courses and new users enrolled in the system.
+    """
+    today = date.today()
+    # Trimester start dates: Jan 1 (t1), May 1 (t2), Sep 1 (t3)
+    return (today.month == 1 and today.day == 1) or \
+           (today.month == 5 and today.day == 1) or \
+           (today.month == 9 and today.day == 1)
+
+
+def _alert_developer_of_reset_failure(alert_reason, error_message):
+    """
+    Alert developer about critical errors via g-chat.
+    
+    Args:
+        error_message (str): Description of the reset failure
+    """
+    # For Google Chat:
+    
+    webhook_url = os.environ.get('GOOGLE_CHAT_WEBHOOK_URL')
+    message = {
+        'text': f'🚨 ALERT: {alert_reason}\n\n'
+                f'Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n'
+                f'Full Error: {error_message}\n\n'
+                f'Action: Check logs at discourse-viz server'
+    }
+    requests.post(webhook_url, json=message)
+    
+    logger.warning(f"DEVELOPER ALERT: Full system reset failed | error: {error_message} | function: _alert_developer_of_reset_failure")
+    logger.warning("TODO: Implement email/g-chat alerting in _alert_developer_of_reset_failure()")

@@ -8,9 +8,11 @@ import core.data_loader as data_loader
 from application.constants import (
     foundation_courses, 
     diploma_programming_courses, 
-    diploma_data_science_courses, 
-    # degree_courses,
-    core_degree_courses,degree_level_courses,L4_degree_courses,L5_degree_courses
+    diploma_data_science_courses,
+    core_degree_courses,
+    degree_level_courses,
+    L4_degree_courses,
+    L5_degree_courses
 )
 from core.utils import get_current_trimester
 
@@ -22,18 +24,19 @@ def index():
     """Main index page route"""
     latest_term = get_current_trimester()
     user_actions_dictionaries = data_loader.get_user_actions_dictionaries()
+    uncategorized_courses = data_loader.get_uncategorized_courses()
     
     return render_template(
         'index.html', 
         foundation_courses=foundation_courses,
         diploma_programming_courses=diploma_programming_courses,
         diploma_data_science_courses=diploma_data_science_courses,
-        # degree_courses=degree_courses,
         core_degree_courses=core_degree_courses,
         degree_level_courses=degree_level_courses,
         L4_degree_courses=L4_degree_courses,
         L5_degree_courses=L5_degree_courses,
-        overall_discourse_charts=list(user_actions_dictionaries.keys()),  # LIST of terms (current and past)
+        uncategorized_courses=uncategorized_courses,
+        overall_discourse_charts=list(user_actions_dictionaries.keys()),
         latest_chart=latest_term
     )
 

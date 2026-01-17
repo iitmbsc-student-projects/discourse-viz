@@ -4,6 +4,7 @@ Contains business logic for chart generation and data processing.
 """
 
 import pandas as pd
+from core.logging_config import get_logger
 import core.data_loader as data_loader
 from processors.functions_to_get_charts import (
     create_stacked_bar_chart_for_overall_engagement,
@@ -11,6 +12,10 @@ from processors.functions_to_get_charts import (
     create_empty_chart_in_case_of_errors
 )
 from processors.overall_discourseData_processors import create_weekwise_engagement
+
+logger_overall = get_logger("viz.overall")
+logger_course = get_logger("viz.course_top10")
+logger_weekly = get_logger("viz.weekly")
 
 
 def generate_chart_for_overall_engagement(term):
@@ -25,7 +30,7 @@ def generate_chart_for_overall_engagement(term):
         chart = create_stacked_bar_chart_for_overall_engagement(top_10_users, term=term)
         return chart
     except Exception as e:
-        print(f"Error generating overall engagement chart: {e}")
+        logger_overall.exception(f"Error generating overall engagement chart | function: generate_chart_for_overall_engagement | term: {term} | error: {e}", extra={"term": term})
         chart = create_empty_chart_in_case_of_errors(
             message="The chart may not have been loaded properly, please wait for some time and then refresh. Contact support if issue persists."
         )

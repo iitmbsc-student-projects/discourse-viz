@@ -6,7 +6,6 @@ from application.constants import API_USERNAME, API_KEY, DISCOURSE_BASE_URL
 
 def get_user_summary(user_name):
     url = f"{DISCOURSE_BASE_URL}/u/{user_name}/summary.json"
-    print(url)
 
     headers = {
         "Api-Key": API_KEY,
