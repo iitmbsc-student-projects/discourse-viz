@@ -73,23 +73,44 @@ def execute_discourse_query(query_id, query_params=None):
                 # Append each row as a dictionary to the results list
                 results_list.append(dict(zip(json_response['columns'], json_response['rows'][index])))
 
-        except Exception as e:
-            # Check for specific 429 error in the exception message
-            if "429" in str(e) and "Too Many Requests" in str(e):
+        except requests.exceptions.HTTPError as e:
+            status_code = getattr(e.response, "status_code", None)
+            if status_code == 429:
                 logger.error(
-                    "Rate limited (429) while executing query",
-                    extra={"query_id": query_id, "page": iteration_count, "params_provided": bool(query_params)},
+                    f"Rate limited (429) while executing query | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params} | page: {iteration_count}",
+                    extra={
+                        "query_id": query_id,
+                        "page": iteration_count,
+                        "params_provided": bool(query_params),
+                        "status_code": status_code,
+                    },
                     exc_info=True,
                 )
                 raise RuntimeError(
                     f"**********\nStopping execution due to rate limiting\nERROR: {e} for query_id = {query_id}\nQUERY_PARAMS = {query_params}\n**********"
-                )
+                ) from e
             else:
-                # Log other exceptions
                 logger.exception(
-                    "Error while executing query",
-                    extra={"query_id": query_id, "page": iteration_count, "params_provided": bool(query_params)},
+                    f"HTTP error while executing query | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params}",
+                    extra={
+                        "query_id": query_id,
+                        "page": iteration_count,
+                        "params_provided": bool(query_params),
+                        "status_code": status_code,
+                    },
                 )
+        except requests.exceptions.RequestException as e:
+            # Non-HTTP request errors (connection, timeout, etc.)
+            logger.exception(
+                f"Request error while executing query | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params} | page: {iteration_count}",
+                extra={"query_id": query_id, "page": iteration_count, "params_provided": bool(query_params)},
+            )
+        except Exception as e:
+            # Log other unexpected exceptions
+            logger.exception(
+                f"Unexpected error while executing query | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params} | page: {iteration_count}",
+                extra={"query_id": query_id, "page": iteration_count, "params_provided": bool(query_params)},
+            )
 
 
         iteration_count += 1  # Increment iteration count for pagination
