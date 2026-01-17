@@ -5,6 +5,7 @@ from core.logging_config import get_logger
 from itertools import chain
 import copy
 from application.constants import (
+    irrelevant_categories,
     weights_dict_for_overall_engagement,
     env,
     foundation_courses,
@@ -59,7 +60,7 @@ def load_user_actions_dictionaries():
 def load_df_map_category_to_id():
     global uncategorized_courses
 
-    irrelevant_categories = [63, 64, 79, 80, 86, 87, 88, 91, 95, 96, 97, 103, 104, 105, 106, 107, 112, 113, 114, 49, 50, 51, 52, 102, 121, 120]
+    
     if env == "dev":
         df_map_category_to_id = pd.read_csv("TRASH/data/df_map_category_to_id.csv")
         df_map_category_to_id = df_map_category_to_id[~df_map_category_to_id["category_id"].isin(irrelevant_categories)]

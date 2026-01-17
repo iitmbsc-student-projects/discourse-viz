@@ -18,6 +18,8 @@ API_USERNAME = 'shubhamG'
 
 # COURSES LIST
 
+irrelevant_categories = [63, 64, 79, 80, 86, 87, 88, 91, 95, 96, 97, 103, 104, 105, 106, 107, 112, 113, 114, 49, 50, 51, 52, 102, 121, 120]
+
 foundation_courses = ['Mathematics for Data Science I','Statistics for Data Science I','Computational Thinking','English I','English II','Mathematics for Data Science II','Statistics for Data Science II','Programming in Python']
 diploma_programming_courses = ['Programming, Data Structures and Algorithms','Database Management Systems','Modern Application Development I','System Commands','Modern Application Development II','Programming Concepts using Java']
 diploma_data_science_courses = ['Machine Learning Foundations','Business Data Management','Machine Learning Techniques','Machine Learning Practice','Tools in Data Science','Business Analytics']
