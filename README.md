@@ -29,7 +29,7 @@ This project visualizes user engagement metrics for various courses. It is built
     ```sh
     # For Windows
     python -m venv venv
-    .\venv\Scripts\activate
+    ./venv/Scripts/activate
 
     # For macOS/Linux
     python3 -m venv venv
@@ -117,7 +117,7 @@ Follow these steps to fork and set up this repository on your local machine:
 ## Configuration
 
 ### Environment Variables
-Create a `.env` file or set these in your environment (I personally hardcode these in their respective files, but never commit such files to the repo). If you are setting these vars in `.env` file, you have to use dotenv to load these vars in yoir code. Kindly use copilot for the code of the same:
+Create a `.env` file or set these in your environment. Using a `.env` file with a library like `python-dotenv` is the recommended approach for managing secrets and configuration during development. If you are setting these vars in `.env` file, you have to use dotenv to load these vars in your code. Kindly use copilot for the code of the same.
 
 ```bash
 # Required for API access
@@ -134,7 +134,7 @@ Getting Google OAuth Credentials
 - Create OAuth 2.0 Client ID (Web application)
 - Add authorized redirect URI: http://localhost:5000/auth/callback
 - Copy Client ID and Secret to .env
-- (Confirm the steps using chatGPT)
+- Ask CoPilot for help on this specific thing; contact developer if more info is needed.
 
 ## How the app works
 
@@ -284,7 +284,7 @@ discourse-viz/
 
 There are 2 ways to remove a course from being shown in the app
 
-1. Suppose you want to remove the course "English II" from the analysis. Get the "category_id" for that course. You will find it in the dataframe returned by query 107. The "category_id" for "English II" is 22. So, add the integer 22 in the list `irrelevant_categories` in the function `load_df_map_category_to_id` inside the file `core\data_loader.py`. You also MUST have to remove 'English II' from the courses lists inside the `constants.py` file, else the course will still be visible on the frontend. On the next deployment, the data for "English II" will not be fetched.
+1. Suppose you want to remove the course "English II" from the analysis. Get the "category_id" for that course. You will find it in the dataframe returned by query 107. The "category_id" for "English II" is 22. So, add the integer 22 in the list `irrelevant_categories` in the function `load_df_map_category_to_id` inside the file `core/data_loader.py`. You also MUST have to remove 'English II' from the courses lists inside the `constants.py` file, else the course will still be visible on the frontend. On the next deployment, the data for "English II" will not be fetched.
 
 2. We can simply remove 'English II' from the courses lists inside the `constants.py` file. This will simply remove the course from the frontend. The data for 'English II' will still be fetched. So, it's not a fool-proof way to remove a course from our analysis. The data for 'English II' will still be fetched in the backend.
 
