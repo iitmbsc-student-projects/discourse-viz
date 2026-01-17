@@ -26,6 +26,7 @@ from processors.overall_discourseData_processors import (
     create_log_normalized_scores_dataframe_for_all_users,
     create_unnormalized_scores_dataframe_for_all_users,
 )
+from core.utils import _alert_developer_of_reset_failure
 
 logger = get_logger("core.data_loader")
 
@@ -218,39 +219,6 @@ def _restore_from_backup():
     logger.info("State restored from backup | function: _restore_from_backup")
 
 
-def _alert_developer_of_reset_failure(error_message):
-    """
-    Alert developer about full system reset failure via email/g-chat.
-    
-    This function should be implemented to send notifications to the development team
-    so they can investigate the issue while users continue accessing old data.
-    
-    Current implementation: PLACEHOLDER - developers should implement email/g-chat alerts
-    
-    Possible implementations:
-    1. Send email via SMTP (gmail, AWS SES, etc.)
-    2. Post message to Google Chat webhook
-    3. Send Slack notification
-    4. Create Jira ticket automatically
-    5. Log to monitoring service (Datadog, New Relic, etc.)
-    
-    Args:
-        error_message (str): Description of the reset failure
-    """
-    # PLACEHOLDER: Implement your alert mechanism here
-    # Example for Google Chat:
-    # import requests
-    # webhook_url = os.environ.get('GOOGLE_CHAT_WEBHOOK_URL')
-    # message = {
-    #     'text': f'🚨 ALERT: Full System Reset Failed\n\n'
-    #             f'Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n'
-    #             f'Error: {error_message}\n\n'
-    #             f'Action: Check logs at discourse-viz server'
-    # }
-    # requests.post(webhook_url, json=message)
-    
-    logger.warning(f"DEVELOPER ALERT: Full system reset failed | error: {error_message} | function: _alert_developer_of_reset_failure")
-    logger.warning("TODO: Implement email/g-chat alerting in _alert_developer_of_reset_failure()")
 
 
 def full_system_reset():

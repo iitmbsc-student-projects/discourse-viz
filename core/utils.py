@@ -1,5 +1,8 @@
 import re
 from datetime import date, datetime, timedelta
+from core.logging_config import get_logger
+
+logger = get_logger("utils")
 
 def sanitize_filepath(name):
     # Replace invalid characters with underscore
@@ -98,3 +101,39 @@ def is_trimester_start_today():
     return (today.month == 1 and today.day == 1) or \
            (today.month == 5 and today.day == 1) or \
            (today.month == 9 and today.day == 1)
+
+
+def _alert_developer_of_reset_failure(error_message):
+    """
+    Alert developer about full system reset failure via email/g-chat.
+    
+    This function should be implemented to send notifications to the development team
+    so they can investigate the issue while users continue accessing old data.
+    
+    Current implementation: PLACEHOLDER - developers should implement email/g-chat alerts
+    
+    Possible implementations:
+    1. Send email via SMTP (gmail, AWS SES, etc.)
+    2. Post message to Google Chat webhook
+    3. Send Slack notification
+    4. Create Jira ticket automatically
+    5. Log to monitoring service (Datadog, New Relic, etc.)
+    
+    Args:
+        error_message (str): Description of the reset failure
+    """
+    # PLACEHOLDER: Implement your alert mechanism here
+    # Example for Google Chat:
+    # import requests
+    # webhook_url = os.environ.get('GOOGLE_CHAT_WEBHOOK_URL')
+    # message = {
+    #     'text': f'🚨 ALERT: Full System Reset Failed\n\n'
+    #             f'Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n'
+    #             f'Error: {error_message}\n\n'
+    #             f'Action: Check logs at discourse-viz server'
+    # }
+    # requests.post(webhook_url, json=message)
+    
+    logger.warning(f"DEVELOPER ALERT: Full system reset failed | error: {error_message} | function: _alert_developer_of_reset_failure")
+    logger.warning("TODO: Implement email/g-chat alerting in _alert_developer_of_reset_failure()")
+    
