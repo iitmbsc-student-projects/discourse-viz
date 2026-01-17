@@ -336,7 +336,7 @@ def full_system_reset():
         
         # Step 4: Alert developer to investigate
         logger.warning("Alerting development team about reset failure...")
-        _alert_developer_of_reset_failure(system_reset_failure_reason)
+        _alert_developer_of_reset_failure(alert_reason = "Full System Reset Failed", error_message = system_reset_failure_reason)
         
         logger.error("=" * 80)
         logger.error("FULL SYSTEM RESET FAILED - FALLBACK TO OLD DATA")
