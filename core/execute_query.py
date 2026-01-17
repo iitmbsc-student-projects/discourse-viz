@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 from application.constants import env, API_USERNAME, GROUP_NAME, DISCOURSE_BASE_URL, API_KEY
 from core.logging_config import get_logger
+from core.utils import _alert_developer_of_reset_failure
 
 
 def execute_discourse_query(query_id, query_params=None):
@@ -56,7 +57,7 @@ def execute_discourse_query(query_id, query_params=None):
 
         try:
             # Send POST request to the API
-            logger.debug("Fetching page", extra={"query_id": query_id, "page": iteration_count})
+            logger.debug(f"Fetching page {iteration_count} | params: {query_params}", extra={"query_id": query_id, "page": iteration_count})
             response = requests.request("POST", request_url, data=data_payload, headers=headers)
             response.raise_for_status()  # Raise an error for bad responses
 
@@ -64,7 +65,7 @@ def execute_discourse_query(query_id, query_params=None):
 
             # Check if there are no results
             if json_response["result_count"] == 0:
-                logger.warning("Query returned zero results", extra={"query_id": query_id, "page": iteration_count})
+                logger.warning(f"Query returned zero results | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params} | page: {iteration_count}", extra={"query_id": query_id, "page": iteration_count})
                 has_more_results = False  # No more results to fetch
                 break
 
@@ -76,20 +77,58 @@ def execute_discourse_query(query_id, query_params=None):
         except requests.exceptions.HTTPError as e:
             status_code = getattr(e.response, "status_code", None)
             if status_code == 429:
-                logger.error(
-                    f"Rate limited (429) while executing query | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params} | page: {iteration_count}",
-                    extra={
-                        "query_id": query_id,
-                        "page": iteration_count,
-                        "params_provided": bool(query_params),
-                        "status_code": status_code,
-                    },
-                    exc_info=True,
-                )
-                raise RuntimeError(
-                    f"**********\nStopping execution due to rate limiting\nERROR: {e} for query_id = {query_id}\nQUERY_PARAMS = {query_params}\n**********"
-                ) from e
-            else:
+                # Retry with increasing delay for rate limiting
+                max_retries = 5
+                for retry_attempt in range(max_retries):
+                    delay = 3 * (retry_attempt + 1)  # 3s, 6s, 9s, 12s, 15s
+                    logger.warning(
+                        f"Rate limited (429), retrying after {delay}s (attempt {retry_attempt + 1}/{max_retries})",
+                        extra={
+                            "query_id": query_id,
+                            "page": iteration_count,
+                            "retry_attempt": retry_attempt + 1,
+                            "delay_seconds": delay,
+                        },
+                    )
+                    time.sleep(delay)
+                    
+                    try:
+                        response = requests.request("POST", request_url, data=data_payload, headers=headers)
+                        response.raise_for_status()
+                        json_response = response.json()
+                        
+                        if json_response["result_count"] == 0:
+                            logger.warning("Query returned zero results", extra={"query_id": query_id, "page": iteration_count})
+                            has_more_results = False
+                            break
+                        
+                        for index in range(len(json_response['rows'])):
+                            results_list.append(dict(zip(json_response['columns'], json_response['rows'][index])))
+                        
+                        break  # Success, exit retry loop
+                        
+                    except requests.exceptions.HTTPError as retry_error:
+                        if getattr(retry_error.response, "status_code", None) == 429:
+                            if retry_attempt == max_retries - 1:
+                                # Max retries reached
+                                logger.error(
+                                    f"Rate limited (429) after {max_retries} retries",
+                                    extra={
+                                        "query_id": query_id,
+                                        "page": iteration_count,
+                                        "params_provided": bool(query_params),
+                                    },
+                                    exc_info=True,
+                                )
+                                raise RuntimeError(
+                                    f"**********\nStopping execution due to persistent rate limiting\nERROR: {retry_error} for query_id = {query_id}\nQUERY_PARAMS = {query_params}\nMax retries ({max_retries}) exceeded\n**********"
+                                ) from retry_error
+                            else:
+                                continue  # Try again
+                        else:
+                            # Different HTTP error during retry
+                            raise
+            else: # HTTP errors other than 429
                 logger.exception(
                     f"HTTP error while executing query | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params}",
                     extra={
@@ -99,18 +138,23 @@ def execute_discourse_query(query_id, query_params=None):
                         "status_code": status_code,
                     },
                 )
+                has_more_results = False  # Stop pagination on non-429 errors
         except requests.exceptions.RequestException as e:
             # Non-HTTP request errors (connection, timeout, etc.)
             logger.exception(
                 f"Request error while executing query | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params} | page: {iteration_count}",
                 extra={"query_id": query_id, "page": iteration_count, "params_provided": bool(query_params)},
             )
+            has_more_results = False  # Stop pagination after request failure
+            break
         except Exception as e:
             # Log other unexpected exceptions
             logger.exception(
                 f"Unexpected error while executing query | function: execute_discourse_query | query_id: {query_id} | params_provided: {query_params} | page: {iteration_count}",
                 extra={"query_id": query_id, "page": iteration_count, "params_provided": bool(query_params)},
             )
+            has_more_results = False
+            break
 
 
         iteration_count += 1  # Increment iteration count for pagination
