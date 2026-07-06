@@ -31,6 +31,7 @@ def get_all_data_dicts():
                     category_id = row.category_id
                     if env == "dev":
                         if not (category_id==18): continue
+                        # if not (category_id in [18,49,50,51,52]): continue
                     category_name = sanitize_filepath(row.name).lower() # Removes characters like :," " etc and replaces them with "_"
                     if category_name not in user_actions_dictionaries[key]:
                         user_actions_dictionaries[key][category_name] = {}
