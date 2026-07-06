@@ -117,16 +117,24 @@ Follow these steps to fork and set up this repository on your local machine:
 ## Configuration
 
 ### Environment Variables
-Create a `.env` file or set these in your environment. Using a `.env` file with a library like `python-dotenv` is the recommended approach for managing secrets and configuration during development. If you are setting these vars in `.env` file, you have to use dotenv to load these vars in your code. Kindly use copilot for the code of the same.
+Export these variables in the terminal before running the app, and keep using the same terminal session.
 
 ```bash
-# Required for API access
-DISCOURSE_API_KEY=your_api_key_here
-GOOGLE_AUTH_CLIENT_ID=your_client_id.apps.googleusercontent.com
-GOOGLE_AUTH_CLIENT_SECRET=your_client_secret
-SECRET_KEY=random_long_secret_string_for_sessions
+export API_KEY="your_api_key_here"
+export GOOGLE_AUTH_CLIENT_ID="your_client_id.apps.googleusercontent.com"
+export GOOGLE_AUTH_CLIENT_SECRET="your_client_secret"
+export SECRET_KEY="random_long_secret_string_for_sessions"
+export GOOGLE_CHAT_WEBHOOK_URL="your_google_chat_webhook_url" # THIS IS NOT MANDATORY. SEE THE NOTE BELOW
+python app.py
 ```
-Getting Discourse API Key
+
+These exports only last for the current terminal window. If you close the terminal, you need to export them again.
+
+**Important note** about `GOOGLE_CHAT_WEBHOOK_URL`: this is **OPTIONAL**.
+The app does not need it to start or run normally.
+Set it only if you want Google Chat alerts when a reset fails.
+
+**How to get the Discourse API Key**
 - (Ask either the developer, or the IITM support team)
 
 Getting Google OAuth Credentials
@@ -134,7 +142,7 @@ Getting Google OAuth Credentials
 - Create OAuth 2.0 Client ID (Web application)
 - Add authorized redirect URI: http://localhost:5000/auth/callback
 - Copy Client ID and Secret to .env
-- Ask CoPilot for help on this specific thing; contact developer if more info is needed.
+- Feel free to take help from a coding assistant on this specific thing; contact developer if more info is needed.
 
 ## How the app works
 
