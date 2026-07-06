@@ -197,6 +197,15 @@
         </ul>
     </div>
 
+    <div class="course-section" id="project-list">
+        <h2>Project Courses</h2>
+        <ul>
+            {% for course in project_courses %}
+            <li><a href="/{{ course | lower | replace(' ', '-') }}" target="_blank">{{ course }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
     {% if uncategorized_courses %}
     <div class="course-section" id="uncategorized-list">
         <h2>Uncategorized Courses</h2>

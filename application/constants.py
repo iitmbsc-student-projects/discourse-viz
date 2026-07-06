@@ -18,7 +18,7 @@ API_USERNAME = 'shubhamG'
 
 # COURSES LIST
 
-irrelevant_categories = [63, 64, 79, 80, 86, 87, 88, 91, 95, 96, 97, 103, 104, 105, 106, 107, 112, 113, 114, 49, 50, 51, 52, 102, 121, 120]
+irrelevant_categories = [63, 64, 79, 80, 86, 87, 88, 91, 95, 96, 97, 103, 104, 105, 106, 107, 112, 113, 114, 49, 50, 51, 52, 102, 121, 120, 123, 124, 125, 126, 130, 131, 132, 133, 134, 135, 136, 137]
 
 foundation_courses = ['Mathematics for Data Science I','Statistics for Data Science I','Computational Thinking','English I','English II','Mathematics for Data Science II','Statistics for Data Science II','Programming in Python']
 diploma_programming_courses = ['Programming, Data Structures and Algorithms','Database Management Systems','Modern Application Development I','System Commands','Modern Application Development II','Programming Concepts using Java']
@@ -29,7 +29,7 @@ core_degree_courses = ['Deep Learning','AI: Search Methods for Problem Solving',
 
 degree_level_courses = ['Linear Statistical Models','Market Research',
 'Statistical Computing','Programming in C','Mathematical Thinking',
-'Computer System Design','Managerial Economics','Corporate Finance',"Introduction to Deep Learning and Generative AI", "Application Development Lab","Project GEN_AI"]
+'Computer System Design','Managerial Economics','Corporate Finance',"Introduction to Deep Learning and Generative AI", "Application Development Lab", "Discrete Mathematics","Compiler Design",]
 
 L4_degree_courses = ['Financial Forensics','Industry 4.0','Algorithmic Thinking in Bioinformatics',
 'Design Thinking for Data Driven App Development', 'Privacy & Security in Online Social Media','Data Visualization Design',
@@ -40,6 +40,8 @@ L5_degree_courses = ["Mathematical Foundations of Generative AI","Algorithms for
 'Special topics in ML (Reinforcement Learning)','Speech Technology','Deep Learning for Computer Vision','Large Language Models',
 'Introduction to Big Data','Deep Learning Practice']
 
+project_courses = ["Project for MLP", "Project for BDM", "Project for MAD2", "Project for MAD1", "Project GEN_AI"]
+
 # degree_courses.sort()
 diploma_data_science_courses.sort()
 diploma_programming_courses.sort()
@@ -48,6 +50,7 @@ core_degree_courses.sort()
 degree_level_courses.sort()
 L4_degree_courses.sort()
 L5_degree_courses.sort()
+project_courses.sort()
 
 # DICTIONARIES FOR user-actions-df analysis
 action_to_description = {

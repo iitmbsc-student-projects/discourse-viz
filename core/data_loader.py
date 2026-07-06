@@ -15,6 +15,7 @@ from application.constants import (
     degree_level_courses,
     L4_degree_courses,
     L5_degree_courses,
+    project_courses,
 )
 from core.execute_query import execute_discourse_query
 from processors.course_data_processors import (
@@ -80,6 +81,7 @@ def load_df_map_category_to_id():
             degree_level_courses,
             L4_degree_courses,
             L5_degree_courses,
+            project_courses,
         )
     )
 
